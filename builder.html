@@ -1707,11 +1707,6 @@
     font-weight: 700;
     text-decoration: underline;
 }
-.pdf-back-preview {
-    display: none;
-    margin: 10px 0 0;
-    text-align: center;
-}
 .pdf-back-preview img {
     max-height: 150px;
     border-radius: 8px;
@@ -2085,12 +2080,6 @@
                 <div class="switch-item-top">
                     <span>✂️ 裁剪线</span>
                     <label class="switch"><input type="checkbox" id="pdfCropToggle" checked><span class="slider"></span></label>
-                </div>
-            </div>
-            <div class="switch-item">
-                <div class="switch-item-top">
-                    <span>🔁 卡背镜像</span>
-                    <label class="switch"><input type="checkbox" id="pdfMirrorToggle" checked><span class="slider"></span></label>
                 </div>
             </div>
         </div>
@@ -4439,8 +4428,8 @@ async function renderCardCanvas(card, lang, quality) {
     return canvas;
 }
 
-// 处理卡背（拉伸为 500×702，可按需水平镜像）
-async function prepareBackImage(file, mirror) {
+// 处理卡背（拉伸为 500×702）
+async function prepareBackImage(file) {
     const dataUrl = await new Promise((resolve, reject) => {
         const fr = new FileReader();
         fr.onload = () => resolve(fr.result);
@@ -4454,10 +4443,6 @@ async function prepareBackImage(file, mirror) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 500, 702);
-    if (mirror) {
-        ctx.translate(500, 0);
-        ctx.scale(-1, 1);
-    }
     ctx.drawImage(img, 0, 0, 500, 702);
     return canvas.toDataURL('image/jpeg', 0.92);
 }
@@ -4619,8 +4604,7 @@ async function doGeneratePdf() {
         const backFile = document.getElementById('pdfBackImage').files[0];
         if (backFile) {
             setStatus('⏳ 正在处理卡背...');
-            const mirror = document.getElementById('pdfMirrorToggle').checked;
-            backData = await prepareBackImage(backFile, mirror);
+            backData = await prepareBackImage(backFile);
         }
 
         // ---- 生成 PDF ----
