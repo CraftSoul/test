@@ -418,6 +418,14 @@
             background: rgba(201, 165, 59, 0.2);
             border-color: #c9a53b;
         }
+        /* 当弹窗作为公告时（仅确认按钮），保持按钮宽度自然 */
+        .modal-actions.single {
+            justify-content: center;
+        }
+        .modal-actions.single .modal-btn {
+            max-width: 200px;
+            flex: 0 1 auto;
+        }
     </style>
 </head>
 <body>
@@ -426,7 +434,7 @@
         <div class="modal-content">
             <h3 id="modalTitle">🌐 切换语言</h3>
             <p id="modalText"></p>
-            <div class="modal-actions">
+            <div class="modal-actions" id="modalActions">
                 <button class="modal-btn secondary" id="modalCancelBtn">N</button>
                 <button class="modal-btn primary" id="modalConfirmBtn">Y</button>
             </div>
@@ -669,17 +677,21 @@
         const modalOverlay = document.getElementById('confirmModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalText = document.getElementById('modalText');
+        const modalActions = document.getElementById('modalActions');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
         
         // 当前待执行的切换动作
         let pendingAction = null;
 
-        // 显示确认弹窗
-        function showConfirmModal(title, text, onConfirm) {
+        // 显示公告弹窗（无取消按钮）
+        function showAnnouncementModal(title, text, onConfirm) {
             modalTitle.textContent = title;
             modalText.innerHTML = text;
             pendingAction = onConfirm;
+            // 隐藏取消按钮，调整确认按钮样式
+            modalCancelBtn.style.display = 'none';
+            modalActions.classList.add('single');
             modalOverlay.classList.add('show');
         }
 
@@ -687,6 +699,9 @@
         function hideModal() {
             modalOverlay.classList.remove('show');
             pendingAction = null;
+            // 恢复弹窗默认样式（为后续可能的双按钮弹窗保留）
+            modalCancelBtn.style.display = '';
+            modalActions.classList.remove('single');
         }
 
         // 弹窗按钮事件
@@ -739,23 +754,22 @@
             localStorage.setItem('kards_lang', lang);
         }
 
-        // 语言切换按钮事件（新逻辑：弹窗确认，首次切英文显示提示）
+        // 语言切换按钮事件（仅切换到英文时弹公告，公告无取消）
         document.getElementById('langToggleBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             const nextLang = currentLang === 'zh' ? 'en' : 'zh';
             
-            // 如果切换到英文，且没有显示过提示，则弹窗询问并展示提示
+            // 如果切换到英文，且没有显示过公告，则显示公告并切换
             if (nextLang === 'en' && !localStorage.getItem('kards_en_toast_shown')) {
-                // 显示确认弹窗，包含提示信息
                 const title = '🌐 Switch to English?';
                 const text = `Sorry for only translating this page. The KARDS Arsenal is an unofficial tool for addressing the issue of "inability to directly access the KARDS official website in China," using Weserv as an agent. If you can visit the official website directly, remove "https://images.weserv.nl/url=ssl:" from the card link to get original AVIF image.`;
-                showConfirmModal(title, text, function() {
-                    // 确认后执行切换，并记录已显示提示
+                showAnnouncementModal(title, text, function() {
+                    // 确认后执行切换，并记录已显示公告
                     localStorage.setItem('kards_en_toast_shown', '1');
                     applyLanguage(nextLang);
                 });
             } else {
-                // 正常直接切换（没有提示需求）
+                // 正常直接切换（没有公告需求）
                 applyLanguage(nextLang);
             }
         });
