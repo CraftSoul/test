@@ -182,7 +182,7 @@
             border: 2px solid #aa8e4e;
         }
         .animation-zone .pack-card-front {
-            transform: rotateY(-180deg);
+            transform: rotateY(180deg);
             border: 2px solid #c9aa5b;
         }
         .animation-zone .pack-card.placeholder .pack-card-back {
@@ -255,7 +255,7 @@
         .params-panel .param-group select:focus,
         .params-panel .param-group input[type="number"]:focus {
             border-color: #e6bc6a;
-            box-shadow: 0 0 0 2px rgba(220, -180, 80, 0.3);
+            box-shadow: 0 0 0 2px rgba(220, 180, 80, 0.3);
         }
         .params-panel .param-group input[type="number"] {
             width: 60px;
@@ -2017,7 +2017,7 @@
                         setTimeout(() => {
                             // 拍下
                             inner.style.transition = `transform ${speeds.slam}s cubic-bezier(0.2, 0.9, 0.4, 1)`;
-                            inner.style.transform = 'rotateY(-180deg) translateY(0) scale(1)';
+                            inner.style.transform = 'rotateY(180deg) translateY(0) scale(1)';
 
                             el.classList.add('flipped');
 
