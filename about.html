@@ -139,7 +139,7 @@
             font-weight: 700;
         }
 
-        /* 新增：菜单内的语言切换容器 */
+        /* 菜单内的语言切换容器 */
         .menu-lang-row {
             display: flex;
             justify-content: center;
@@ -325,7 +325,7 @@
             .block-text h2 { font-size: 1.3rem; }
         }
 
-        /* ----- 中央确认弹窗样式 ----- */
+        /* ----- 中央公告弹窗（仅一个确认按钮，无取消）----- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -414,11 +414,7 @@
             background: #e0b94a;
             border-color: #e0b94a;
         }
-        .modal-btn.secondary:hover {
-            background: rgba(201, 165, 59, 0.2);
-            border-color: #c9a53b;
-        }
-        /* 当弹窗作为公告时（仅确认按钮），保持按钮宽度自然 */
+        /* 公告弹窗仅有一个确认按钮，取消按钮已彻底移除 */
         .modal-actions.single {
             justify-content: center;
         }
@@ -432,11 +428,10 @@
 <div class="app-container">
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="modalTitle">🌐 切换语言</h3>
+            <h3 id="modalTitle">🌐 Non-Chinese users?</h3>
             <p id="modalText"></p>
-            <div class="modal-actions" id="modalActions">
-                <button class="modal-btn secondary" id="modalCancelBtn">N</button>
-                <button class="modal-btn primary" id="modalConfirmBtn">Y</button>
+            <div class="modal-actions single" id="modalActions">
+                <button class="modal-btn primary" id="modalConfirmBtn">Confirm</button>
             </div>
         </div>
     </div>
@@ -677,21 +672,16 @@
         const modalOverlay = document.getElementById('confirmModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalText = document.getElementById('modalText');
-        const modalActions = document.getElementById('modalActions');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
         
         // 当前待执行的切换动作
         let pendingAction = null;
 
-        // 显示公告弹窗（无取消按钮）
+        // 显示公告弹窗
         function showAnnouncementModal(title, text, onConfirm) {
             modalTitle.textContent = title;
             modalText.innerHTML = text;
             pendingAction = onConfirm;
-            // 隐藏取消按钮，调整确认按钮样式
-            modalCancelBtn.style.display = 'none';
-            modalActions.classList.add('single');
             modalOverlay.classList.add('show');
         }
 
@@ -699,13 +689,9 @@
         function hideModal() {
             modalOverlay.classList.remove('show');
             pendingAction = null;
-            // 恢复弹窗默认样式（为后续可能的双按钮弹窗保留）
-            modalCancelBtn.style.display = '';
-            modalActions.classList.remove('single');
         }
 
-        // 弹窗按钮事件
-        modalCancelBtn.addEventListener('click', hideModal);
+        // 仅存确认按钮事件
         modalConfirmBtn.addEventListener('click', function() {
             if (pendingAction) {
                 pendingAction();
@@ -745,7 +731,7 @@
                     }
                 }
             });
-            // 更新语言切换按钮文本（按钮现在在菜单内，但id保持不变）
+            // 更新语言切换按钮文本
             const langBtn = document.getElementById('langToggleBtn');
             if (langBtn) {
                 langBtn.textContent = lang === 'zh' ? '🌐 EN' : '🌐 中文';
@@ -754,14 +740,13 @@
             localStorage.setItem('kards_lang', lang);
         }
 
-        // 语言切换按钮事件（仅切换到英文时弹公告，公告无取消）
         document.getElementById('langToggleBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             const nextLang = currentLang === 'zh' ? 'en' : 'zh';
             
             // 如果切换到英文，且没有显示过公告，则显示公告并切换
             if (nextLang === 'en' && !localStorage.getItem('kards_en_toast_shown')) {
-                const title = '🌐 Switch to English?';
+                const title = '🌐 Non-Chinese users?';
                 const text = `Sorry for only translating this page. The KARDS Arsenal is an unofficial tool for addressing the issue of "inability to directly access the KARDS official website in China," using Weserv as an agent. If you can visit the official website directly, remove "https://images.weserv.nl/url=ssl:" from the card link to get original AVIF image.`;
                 showAnnouncementModal(title, text, function() {
                     // 确认后执行切换，并记录已显示公告
@@ -769,7 +754,7 @@
                     applyLanguage(nextLang);
                 });
             } else {
-                // 正常直接切换（没有公告需求）
+                // 正常直接切换
                 applyLanguage(nextLang);
             }
         });
