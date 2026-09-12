@@ -182,7 +182,7 @@
             border: 2px solid #aa8e4e;
         }
         .animation-zone .pack-card-front {
-            transform: rotateY(180deg);
+            transform: rotateY(0deg);
             border: 2px solid #c9aa5b;
         }
         .animation-zone .pack-card.placeholder .pack-card-back {
@@ -2017,7 +2017,7 @@
                         setTimeout(() => {
                             // 拍下
                             inner.style.transition = `transform ${speeds.slam}s cubic-bezier(0.2, 0.9, 0.4, 1)`;
-                            inner.style.transform = 'translateY(0) scale(1)';
+                            inner.style.transform = 'rotateY(-180deg) translateY(0) scale(1)';
 
                             el.classList.add('flipped');
 
