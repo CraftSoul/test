@@ -1348,28 +1348,28 @@
         }
 
         // ==================== 搜索 ====================
-        function getAllSearchText(card, mode) {
-            const parts = [];
-            const add = (obj, fallback) => {
-                let added = false;
-                if (obj && typeof obj === 'object') {
-                    for (const k in obj) {
-                        if (typeof obj[k] === 'string' && obj[k].length) {
-                            parts.push(obj[k]);
-                            added = true;
-                        }
-                    }
+        function getSearchTexts(card, mode) {
+    const texts = [];
+    const add = (obj, fallback) => {
+        let added = false;
+        if (obj && typeof obj === 'object') {
+            for (const k in obj) {
+                if (typeof obj[k] === 'string' && obj[k].length) {
+                    texts.push(obj[k]);
+                    added = true;
                 }
-                if (!added && fallback) parts.push(fallback);
-            };
-            if (mode === 'all' || mode === 'title') {
-                add(card.titleMap, card.titleZh || '');
             }
-            if (mode === 'all' || mode === 'text') {
-                add(card.textMap, card.text_zh || '');
-            }
-            return parts.join(' ');
         }
+        if (!added && fallback) texts.push(fallback);
+    };
+    if (mode === 'all' || mode === 'title') {
+        add(card.titleMap, card.titleZh || '');
+    }
+    if (mode === 'all' || mode === 'text') {
+        add(card.textMap, card.text_zh || '');
+    }
+    return texts;
+}
 
         function escapeReChar(ch) {
             return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1403,18 +1403,21 @@
         }
 
         function matchSearchCondition(card, mode, pattern, strict) {
-            const text = getAllSearchText(card, mode);
-            if (pattern === '') {
-                // 空模式：要求对应字段为空（忽略首尾空白）
-                return text.trim() === '';
-            }
-            // 目标为空且模式非空 → 不匹配
-            if (text.length === 0) return false;
-            const re = buildSearchRegex(pattern, strict);
-            if (!re) return true; // 无效正则忽略
-            re.lastIndex = 0;
-            return re.test(text);
-        }
+    const texts = getSearchTexts(card, mode);
+    if (pattern === '') {
+        // 空模式：要求所有文本都为空（trim 后）
+        return texts.every(t => t.trim() === '');
+    }
+    // 如果所有文本都为空，且模式非空，则不匹配
+    if (texts.every(t => t.length === 0)) return false;
+    const re = buildSearchRegex(pattern, strict);
+    if (!re) return true; // 无效正则忽略
+    // 只要有一个文本匹配即可
+    return texts.some(t => {
+        re.lastIndex = 0;
+        return re.test(t);
+    });
+}
 
         function searchCardMatch(card, query, strict) {
             const q = (query || '').trim();
