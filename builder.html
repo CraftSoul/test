@@ -171,11 +171,6 @@ select,.search-input{width:100%;background:#1e1c16;border:1px solid #aa8e4e;bord
 /* ============ 生成模态框（统一） ============ */
 .gen-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);z-index:3000;align-items:center;justify-content:center;padding:16px}
 .gen-content{background:#1a1c12;border-radius:28px;border:2px solid #c9aa5b;max-width:1080px;width:100%;max-height:92vh;overflow-y:auto;padding:0;box-shadow:0 20px 40px rgba(0,0,0,.6);position:relative}
-.gen-tabs{display:flex;gap:0;padding:16px 16px 0;position:sticky;top:0;background:#1a1c12;z-index:5;border-radius:28px 28px 0 0}
-.gen-tab{flex:1;background:transparent;border:none;outline:none;padding:12px 16px;border-radius:14px 14px 0 0;color:#c9b06b;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;box-shadow:none}
-.gen-tab:hover{color:#ffefbf;background:rgba(201,165,59,.1)}
-.gen-tab:focus,.gen-tab:active{outline:none;border:none;box-shadow:none}
-.gen-tab.active{color:#1e1c10;background:#c9a53b;font-weight:700;border:none;outline:none}
 .gen-body{padding:16px 20px 22px}
 .gen-controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
 .gen-control{flex:1;min-width:120px}
@@ -190,7 +185,7 @@ select,.search-input{width:100%;background:#1e1c16;border:1px solid #aa8e4e;bord
 .section-label{font-size:.75rem;font-weight:600;color:#c9b06b;letter-spacing:.5px;padding:4px 0 6px;border-bottom:1px solid rgba(170,142,78,.3);margin-bottom:10px;width:100%}
 
 .switch-row{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-start;margin-bottom:12px}
-.switch-item{display:flex;flex-direction:column;align-items:stretch;gap:4px;background:rgba(0,0,0,.3);padding:8px 14px 10px;border-radius:40px;min-width:140px;flex:1 1 auto;border:1px solid transparent;transition:border .2s}
+.switch-item{display:flex;flex-direction:column;align-items:stretch;gap:4px;background:rgba(0,0,0,.3);padding:8px 14px 10px;border-radius:40px;min-width:140px;flex:1 1 auto;border:1px solid transparent;transition:border .2s,opacity .2s}
 .switch-item:has(input:checked){border-color:rgba(201,165,59,.4)}
 .switch-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
 .switch-item-top span{color:#e9dbbd;font-size:.75rem;font-weight:600;white-space:nowrap}
@@ -205,6 +200,15 @@ select,.search-input{width:100%;background:#1e1c16;border:1px solid #aa8e4e;bord
 .mini-btn:hover{background:#3a6a3a;color:#afffaf}
 .mini-btn.cancel{background:#5e3c1f;color:#ffcf8a}
 .mini-btn.cancel:hover{background:#b6521a;color:#fff}
+
+/* 灰化被忽略的控件 */
+.switch-item.disabled,
+.gen-control.disabled{
+    opacity:.4;
+    filter:grayscale(.85);
+    pointer-events:none;
+    user-select:none;
+}
 
 .switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
 .switch input{opacity:0;width:0;height:0}
@@ -232,6 +236,21 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 .set-all-wrapper select{width:100px;background:#1e1c16;border:1px solid #aa8e4e;border-radius:40px;padding:4px 8px;color:#f5efdb;font-size:.7rem;cursor:pointer;outline:none}
 .set-all-wrapper button{background:#5a6b3c;border:none;padding:2px 12px;border-radius:40px;color:#f5efdb;font-weight:bold;font-size:.7rem;cursor:pointer}
 .set-all-wrapper button:hover{background:#7e9e4a}
+
+/* 导航栏（位于高级参数下方） */
+.gen-tabs{
+    display:flex;gap:0;
+    padding:12px 20px 0;
+    margin:12px -20px 0;
+    position:sticky;top:0;
+    background:#1a1c12;
+    z-index:5;
+    border-top:1px solid rgba(170,142,78,.3);
+}
+.gen-tab{flex:1;background:transparent;border:none;outline:none;padding:12px 16px;border-radius:12px 12px 0 0;color:#c9b06b;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;box-shadow:none}
+.gen-tab:hover{color:#ffefbf;background:rgba(201,165,59,.1)}
+.gen-tab:focus,.gen-tab:active{outline:none;border:none;box-shadow:none}
+.gen-tab.active{color:#1e1c10;background:#c9a53b;font-weight:700;border:none;outline:none}
 
 .gen-preview{text-align:center;margin:12px 0;max-height:56vh;overflow:auto;background:rgba(0,0,0,.25);border-radius:12px;padding:6px;border:1px dashed rgba(170,142,78,.3);min-height:60px}
 .gen-preview canvas{max-width:100%;border-radius:12px}
@@ -417,11 +436,6 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 <!-- 统一生成模态框 -->
 <div id="genModal" class="gen-modal">
     <div class="gen-content">
-        <div class="gen-tabs">
-            <button class="gen-tab active" data-tab="local">🖼️ 本地</button>
-            <button class="gen-tab" data-tab="kapi">⚡ KAPI</button>
-            <button class="gen-tab" data-tab="pdf">🖨️ 打印 PDF</button>
-        </div>
         <div class="gen-body">
             <div class="section-label">📐 基础</div>
             <div class="gen-controls">
@@ -448,7 +462,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 
             <div class="section-label" style="margin-top:12px;">📎 附件</div>
             <div class="switch-row">
-                <div class="switch-item">
+                <div class="switch-item" id="switchItemHeadquarter">
                     <div class="switch-item-top"><span>🏛️ 总部</span><label class="switch"><input type="checkbox" id="headquarterToggle"><span class="slider"></span></label></div>
                     <div class="switch-item-input" id="headquarterInputDiv">
                         <input type="text" id="headquarterNameInput" placeholder="总部英文名 (例: MOSCOW)">
@@ -462,11 +476,11 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                         </div>
                     </div>
                 </div>
-                <div class="switch-item">
+                <div class="switch-item" id="switchItemStatsCard">
                     <div class="switch-item-top"><span>📊 统计卡</span><label class="switch"><input type="checkbox" id="statsCardToggle" checked><span class="slider"></span></label></div>
                     <div class="switch-item-input show" id="statsCardInputDiv"><input type="text" id="statsCardTitle" placeholder="统计卡标题 (默认: 卡组统计)"></div>
                 </div>
-                <div class="switch-item">
+                <div class="switch-item" id="switchItemQrCard">
                     <div class="switch-item-top"><span>📱 二维码</span><label class="switch"><input type="checkbox" id="qrToggle"><span class="slider"></span></label></div>
                     <div class="switch-item-input" id="qrCardInputDiv"><input type="text" id="qrCardTitle" placeholder="二维码标题 (默认: 卡组二维码)"></div>
                 </div>
@@ -487,6 +501,13 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 </div>
             </div>
 
+            <!-- 导航栏（在高级参数下方） -->
+            <div class="gen-tabs">
+                <button class="gen-tab active" data-tab="local">🖼️ 本地</button>
+                <button class="gen-tab" data-tab="kapi">⚡ KAPI</button>
+                <button class="gen-tab" data-tab="pdf">🖨️ 打印 PDF</button>
+            </div>
+
             <div class="tab-panel" data-panel="local">
                 <div class="section-label" style="margin-top:12px;">🖼️ 本地参数</div>
                 <div class="gen-controls">
@@ -503,10 +524,10 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 <div class="kapi-note">KAPI 模式使用官方 API 渲染图片。高级参数（版本 / 花费 / 星标）会通过 <code>cardOverrides</code> 发送。</div>
                 <div id="kapiCustomNotice" class="kapi-note warn" style="display:none;"></div>
                 <div class="gen-controls">
-                    <div class="gen-control"><label>比例 (25% - 100%)</label><div class="range-row"><input type="range" id="kapiScale" min="25" max="100" value="100"><input type="number" id="kapiScaleNum" min="25" max="100" value="100"></div></div>
+                    <div class="gen-control"><label>比例 (25% - 100%)</label><div class="range-row"><input type="range" id="kapiScale" min="25" max="100" value="50"><input type="number" id="kapiScaleNum" min="25" max="100" value="50"></div></div>
                     <div class="gen-control"><label>横间距 px</label><input type="number" id="kapiSpacingX" value="0" min="-500" max="500" step="1"></div>
                     <div class="gen-control"><label>纵间距 px</label><input type="number" id="kapiSpacingY" value="0" min="-500" max="500" step="1"></div>
-                    <div class="gen-control" style="flex:.7;min-width:100px;display:flex;align-items:center;gap:8px;">
+                    <div class="gen-control" id="kapiStatsControl" style="flex:.7;min-width:100px;display:flex;align-items:center;gap:8px;">
                         <label style="margin:0;">额外统计图</label>
                         <label class="switch" style="width:44px;height:24px;"><input type="checkbox" id="kapiStatsChart"><span class="slider" style="height:24px;"></span></label>
                     </div>
@@ -1670,15 +1691,17 @@ async function drawQrCard(ctx,x,y,w,h,radius,qrData,title){
 
 // ==================== 统一生成模态框逻辑 ====================
 let currentTab='local';
+let lastGenTab='local'; // 记忆上次所选模式
 let currentPreviewCanvas=null;
 let kapiResultImage=null;
 let kapiStatsChartImage=null;
 
 function switchTab(tab){
   currentTab=tab;
+  lastGenTab=tab; // 记忆
   document.querySelectorAll('.gen-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display=(p.dataset.panel===tab)?'block':'none';});
-  updateKapiCustomNotice();
+  updateControlsDisabledState();
 }
 
 // 检测当前卡组是否包含自定义卡牌（用于 KAPI 提示）
@@ -1688,15 +1711,33 @@ function deckHasCustomCards(){
   }
   return false;
 }
-function updateKapiCustomNotice(){
+
+// 更新控件禁用/灰化状态（KAPI 且含自定义卡牌时，统计卡/二维码/额外统计图被忽略）
+function updateControlsDisabledState(){
+  const hasCustom=deckHasCustomCards();
+  const inKapi=currentTab==='kapi';
+  const disableInKapi=inKapi&&hasCustom;
+
+  const statsToggle=document.getElementById('statsCardToggle');
+  const qrToggle=document.getElementById('qrToggle');
+  const kapiStatsChart=document.getElementById('kapiStatsChart');
+
+  statsToggle.disabled=disableInKapi;
+  qrToggle.disabled=disableInKapi;
+  kapiStatsChart.disabled=disableInKapi;
+
+  document.getElementById('switchItemStatsCard')?.classList.toggle('disabled',disableInKapi);
+  document.getElementById('switchItemQrCard')?.classList.toggle('disabled',disableInKapi);
+  document.getElementById('kapiStatsControl')?.classList.toggle('disabled',disableInKapi);
+
   const notice=document.getElementById('kapiCustomNotice');
-  if(!notice) return;
-  if(currentTab!=='kapi'){notice.style.display='none';return;}
-  if(deckHasCustomCards()){
-    notice.style.display='block';
-    notice.textContent='⚠️ 检测到自定义卡牌：KAPI 请求将忽略「统计卡」与「二维码卡」参数，自定义卡牌会在返回图片上叠加绘制。';
-  }else{
-    notice.style.display='none';
+  if(notice){
+    if(disableInKapi){
+      notice.style.display='block';
+      notice.textContent='⚠️ 检测到自定义卡牌：KAPI 请求将忽略「统计卡」「二维码卡」与「额外统计图」（控件已灰化），自定义卡牌会在返回图片上叠加绘制。';
+    }else{
+      notice.style.display='none';
+    }
   }
 }
 
@@ -1719,7 +1760,7 @@ function bindGenModalEvents(){
   sNum.addEventListener('input',()=>{let v=parseInt(sNum.value);if(isNaN(v))v=100;v=Math.max(25,Math.min(100,v));sRange.value=v;});
   const kRange=document.getElementById('kapiScale'),kNum=document.getElementById('kapiScaleNum');
   kRange.addEventListener('input',()=>kNum.value=kRange.value);
-  kNum.addEventListener('input',()=>{let v=parseInt(kNum.value);if(isNaN(v))v=100;v=Math.max(25,Math.min(100,v));kRange.value=v;});
+  kNum.addEventListener('input',()=>{let v=parseInt(kNum.value);if(isNaN(v))v=50;v=Math.max(25,Math.min(100,v));kRange.value=v;});
 
   const hqT=document.getElementById('headquarterToggle');
   const hqDiv=document.getElementById('headquarterInputDiv');
@@ -1826,7 +1867,6 @@ async function doGeneratePreview(){
   const statusEl=document.getElementById('genStatus');
   const setStatus=t=>{statusEl.style.display='block';statusEl.textContent=t;};
   const previewDiv=document.getElementById('imgGenPreview');
-  // 重置下载统计图按钮
   document.getElementById('downloadStatsBtn').style.display='none';
   kapiStatsChartImage=null;
   try{
@@ -1890,10 +1930,8 @@ async function generateKapiPreview(setStatus,previewDiv){
     return (a.card.cardId||'').localeCompare(b.card.cardId||'',undefined,{numeric:true,sensitivity:'base'});
   });
 
-  // 检测是否存在自定义卡 / 无 importId 的卡
   const hasCustomOrNoImport=allSlots.some(it=>it.card.isCustom||!it.card.importId);
 
-  // 构建卡组代码（仅含非自定义有 importId 的卡）
   const codeMap=new Map();
   for(const it of allSlots){
     const c=it.card;
@@ -1907,7 +1945,6 @@ async function generateKapiPreview(setStatus,previewDiv){
   }
   const deckCode=`%%${getNationCode(mainNation)}${getNationCode(allyNation)}|${regions[0]};${regions[1]};${regions[2]};${regions[3]}`;
 
-  // emptySlots: 自定义/无importId 卡在完整序列中的位置，转换为 KAPI 输出中需要空出的索引
   const emptySlots=[];
   let nonCustomIdx=0;
   for(let i=0;i<allSlots.length;i++){
@@ -1916,7 +1953,7 @@ async function generateKapiPreview(setStatus,previewDiv){
     else nonCustomIdx++;
   }
 
-  const scale=parseInt(document.getElementById('kapiScale').value)||100;
+  const scale=parseInt(document.getElementById('kapiScale').value)||50;
   const spacingX=parseInt(document.getElementById('kapiSpacingX').value)||0;
   const spacingY=parseInt(document.getElementById('kapiSpacingY').value)||0;
   const extraStats=document.getElementById('kapiStatsChart').checked;
@@ -1936,7 +1973,6 @@ async function generateKapiPreview(setStatus,previewDiv){
     }
   }
 
-  // 构建 cardOverrides（版本 / 花费 / 星标）
   const cardOverrides={};
   for(const [cid,entry] of deckMap){
     const card=entry.card;
@@ -1951,12 +1987,12 @@ async function generateKapiPreview(setStatus,previewDiv){
     if(Object.keys(ov).length>0) cardOverrides[card.cardId]=ov;
   }
 
-  // 用户是否想要统计卡 / 二维码卡
   const userWantsStats=document.getElementById('statsCardToggle').checked;
   const userWantsQr=document.getElementById('qrToggle').checked;
-  // 当有自定义卡时，忽略统计卡和二维码卡参数（不改变 UI 开关）
+  // 当有自定义卡时，忽略统计卡 / 二维码 / 额外统计图（不改动 UI）
   const effectiveStatsCard=hasCustomOrNoImport?false:userWantsStats;
   const effectiveQr=hasCustomOrNoImport?false:userWantsQr;
+  const effectiveExtraStats=hasCustomOrNoImport?false:extraStats;
 
   const body={
     deckCode,
@@ -1969,7 +2005,7 @@ async function generateKapiPreview(setStatus,previewDiv){
     qrEnabled:effectiveQr,
     statsTitle:document.getElementById('statsCardTitle').value.trim()||null,
     qrTitle:document.getElementById('qrCardTitle').value.trim()||null,
-    statsChartToggle:extraStats,
+    statsChartToggle:effectiveExtraStats,
     lang:document.getElementById('imgLang').value,
     bgColor:getBgColor(),
     foldEnabled:document.getElementById('foldToggle').checked,
@@ -1992,7 +2028,6 @@ async function generateKapiPreview(setStatus,previewDiv){
   if(!mainImage) throw new Error('KAPI 未返回图片');
   kapiStatsChartImage=data.statsChart||null;
 
-  // 若需要，在返回图上叠加自定义卡
   let finalImage=mainImage;
   if(hasCustomOrNoImport){
     setStatus('⏳ 正在叠加自定义卡牌...');
@@ -2004,11 +2039,9 @@ async function generateKapiPreview(setStatus,previewDiv){
     canvas.width=baseImg.width;canvas.height=baseImg.height;
     const ctx=canvas.getContext('2d');
     ctx.drawImage(baseImg,0,0);
-    // 用 sortedSlots 将 null 插入到 nonCustom 顺序中
     const nonCustomList=allSlots.filter(it=>!it.card.isCustom&&it.card.importId);
     const sortedSlots=[...emptySlots].sort((a,b)=>b-a);
     for(const idx of sortedSlots){if(idx>=0&&idx<=nonCustomList.length) nonCustomList.splice(idx,0,null);}
-    // 自定义卡按出现顺序依次填入 null 位置
     const customList=allSlots.filter(it=>it.card.isCustom||!it.card.importId);
     let ci=0;
     for(let i=0;i<nonCustomList.length;i++){
@@ -2364,8 +2397,8 @@ function bindDeckEvents(){
   document.getElementById('mobileImportBtn').onclick=()=>{const code=document.getElementById('mobileImportCode').value.trim();if(code)importDeckFromCode(code);else alert('请输入卡组代码');};
   document.getElementById('exportBtn').onclick=exportAndCopy;
   document.getElementById('mobileExportBtn').onclick=exportAndCopy;
-  document.getElementById('genImgBtn').onclick=()=>openGenModal('local');
-  document.getElementById('mobileGenImgBtn').onclick=()=>openGenModal('local');
+  document.getElementById('genImgBtn').onclick=()=>openGenModal();
+  document.getElementById('mobileGenImgBtn').onclick=()=>openGenModal();
   const updateNation=()=>{
     mainNation=document.getElementById('mainNationSelect').value;
     allyNation=document.getElementById('allyNationSelect').value;
@@ -2378,7 +2411,7 @@ function bindDeckEvents(){
   document.getElementById('mobileMainNation').addEventListener('change',()=>{mainNation=document.getElementById('mobileMainNation').value;document.getElementById('mainNationSelect').value=mainNation;updateAllDecksUI();updateFactionStats();});
   document.getElementById('mobileAllyNation').addEventListener('change',()=>{allyNation=document.getElementById('mobileAllyNation').value;document.getElementById('allyNationSelect').value=allyNation;updateAllDecksUI();updateFactionStats();});
 }
-function openGenModal(tab){
+function openGenModal(){
   if(deckMap.size===0){
     const hqT=document.getElementById('headquarterToggle');
     const hqName=document.getElementById('headquarterNameInput').value.trim();
@@ -2386,7 +2419,8 @@ function openGenModal(tab){
   }
   const modal=document.getElementById('genModal');
   modal.style.display='flex';
-  switchTab(tab||'local');
+  // 使用上次所选模式
+  switchTab(lastGenTab);
   updateCardVersionList();
   updatePdfHint();
 }
