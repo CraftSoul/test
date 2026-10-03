@@ -8,7 +8,18 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{min-height:100vh;background:#2b2b1f;background-image:radial-gradient(circle at 20% 40%,rgba(80,70,40,.4) 2%,transparent 2.5%),radial-gradient(circle at 70% 85%,rgba(60,50,30,.5) 1.8%,transparent 2.2%),repeating-linear-gradient(45deg,#5e5536 0px,#5e5536 2px,#7e6e48 2px,#7e6e48 8px),repeating-linear-gradient(135deg,#3e3a2a 0px,#3e3a2a 3px,#5a4e32 3px,#5a4e32 10px);background-blend-mode:overlay,normal;font-family:'Segoe UI',Roboto,system-ui,sans-serif;color:#f5efdb;padding:16px}
+body{
+    min-height:100vh;
+    background:#2b2b1f;
+    background-image:
+        radial-gradient(circle at 20% 40%, rgba(80, 70, 40, 0.4) 2%, transparent 2.5%),
+        radial-gradient(circle at 70% 85%, rgba(60, 50, 30, 0.5) 1.8%, transparent 2.2%),
+        radial-gradient(circle at 45% 20%, rgba(110, 90, 50, 0.3) 3%, transparent 3.5%),
+        repeating-linear-gradient(45deg, #5e5536 0px, #5e5536 2px, #7e6e48 2px, #7e6e48 8px),
+        repeating-linear-gradient(135deg, #3e3a2a 0px, #3e3a2a 3px, #5a4e32 3px, #5a4e32 10px);
+    background-blend-mode: overlay, normal;
+    font-family:'Segoe UI',Roboto,system-ui,sans-serif;color:#f5efdb;padding:16px;
+}
 .app-container{max-width:1400px;margin:0 auto}
 .nav-bar{background:rgba(20,20,15,.96);backdrop-filter:blur(16px);border:1px solid #aa8e4e;border-radius:20px;margin-bottom:24px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.3)}
 .nav-header-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:rgba(0,0,0,.2);border-bottom:1px solid rgba(170,142,78,.3)}
@@ -18,8 +29,8 @@ body{min-height:100vh;background:#2b2b1f;background-image:radial-gradient(circle
 .nav-menu{max-height:0;overflow:hidden;transition:max-height .35s ease-out;background:rgba(10,10,8,.98)}
 .nav-menu.open{max-height:400px}
 .menu-links{display:flex;flex-direction:column;gap:8px;padding:16px 20px 20px}
-.menu-link{display:block;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 20px;border-radius:60px;background:rgba(210,210,225,.08);color:#eef0ff;text-align:center;transition:.2s;border:1px solid transparent}
-.menu-link:hover{background:rgba(235,235,245,.2);border-color:#c9a53b}
+.menu-link{display:block;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 20px;border-radius:60px;background:rgba(210,210,225,.08);color:#eef0ff;text-align:center;transition:.2s;border:none}
+.menu-link:hover{background:rgba(235,235,245,.2)}
 .menu-link.active{background:#c9a53b;color:#1e1c10;font-weight:700}
 
 .builder-main{display:flex;gap:24px;position:relative}
@@ -160,16 +171,17 @@ select,.search-input{width:100%;background:#1e1c16;border:1px solid #aa8e4e;bord
 /* ============ 生成模态框（统一） ============ */
 .gen-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);z-index:3000;align-items:center;justify-content:center;padding:16px}
 .gen-content{background:#1a1c12;border-radius:28px;border:2px solid #c9aa5b;max-width:1080px;width:100%;max-height:92vh;overflow-y:auto;padding:0;box-shadow:0 20px 40px rgba(0,0,0,.6);position:relative}
-.gen-tabs{display:flex;gap:4px;padding:12px 16px 0;border-bottom:1px solid rgba(170,142,78,.3);position:sticky;top:0;background:#1a1c12;z-index:5;border-radius:28px 28px 0 0}
-.gen-tab{flex:1;background:transparent;border:none;padding:12px 16px;border-radius:14px 14px 0 0;color:#c9b06b;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.gen-tabs{display:flex;gap:0;padding:16px 16px 0;position:sticky;top:0;background:#1a1c12;z-index:5;border-radius:28px 28px 0 0}
+.gen-tab{flex:1;background:transparent;border:none;outline:none;padding:12px 16px;border-radius:14px 14px 0 0;color:#c9b06b;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;box-shadow:none}
 .gen-tab:hover{color:#ffefbf;background:rgba(201,165,59,.1)}
-.gen-tab.active{color:#1e1c10;background:#c9a53b;font-weight:700}
+.gen-tab:focus,.gen-tab:active{outline:none;border:none;box-shadow:none}
+.gen-tab.active{color:#1e1c10;background:#c9a53b;font-weight:700;border:none;outline:none}
 .gen-body{padding:16px 20px 22px}
 .gen-controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
 .gen-control{flex:1;min-width:120px}
 .gen-control label{font-size:.7rem;color:#e9dbbd;display:block;margin-bottom:4px;font-weight:600}
 .gen-control input,.gen-control select{width:100%;background:#1e1c16;border:1px solid #aa8e4e;border-radius:40px;padding:6px 12px;color:#f5efdb;font-size:.8rem;outline:none}
-.gen-control input[type=range]{padding:0;height:6px;-webkit-appearance:none;appearance:none;background:#1e1c16;border-radius:3px}
+.gen-control input[type=range]{padding:0;height:6px;-webkit-appearance:none;appearance:none;background:#1e1c16;border-radius:3px;border:none}
 .gen-control input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#c9a53b;cursor:pointer;border:none}
 .gen-control input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#c9a53b;cursor:pointer;border:none}
 .range-row{display:flex;gap:8px;align-items:center}
@@ -200,12 +212,11 @@ select,.search-input{width:100%;background:#1e1c16;border:1px solid #aa8e4e;bord
 .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:2px;background-color:#e9cf95;transition:.2s;border-radius:50%}
 input:checked+.slider{background-color:#7a6233}
 input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6}
+.switch input:disabled+.slider{opacity:.55;cursor:not-allowed}
 
 #cardVersionList{margin-top:8px;border-top:1px solid #aa8e4e;padding-top:6px}
 .version-list-header{cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:4px 0;user-select:none}
 .version-list-header:hover{color:#dbba6c}
-.version-list-header .header-actions{display:flex;align-items:center;gap:8px}
-.version-list-header .header-actions button{background:#4a3720;border:none;padding:2px 10px;border-radius:40px;color:#f3e1b3;cursor:pointer;font-size:.65rem}
 #versionListContent{display:none;max-height:250px;overflow-y:auto;margin-top:6px}
 #versionListContent.open{display:block}
 #versionListContent .version-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(170,142,78,.2)}
@@ -222,25 +233,29 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 .set-all-wrapper button{background:#5a6b3c;border:none;padding:2px 12px;border-radius:40px;color:#f5efdb;font-weight:bold;font-size:.7rem;cursor:pointer}
 .set-all-wrapper button:hover{background:#7e9e4a}
 
-.gen-preview{text-align:center;margin:12px 0;max-height:50vh;overflow:auto;background:rgba(0,0,0,.25);border-radius:12px;padding:6px;border:1px dashed rgba(170,142,78,.3);min-height:60px}
+.gen-preview{text-align:center;margin:12px 0;max-height:56vh;overflow:auto;background:rgba(0,0,0,.25);border-radius:12px;padding:6px;border:1px dashed rgba(170,142,78,.3);min-height:60px}
 .gen-preview canvas{max-width:100%;border-radius:12px}
+.gen-preview img{max-width:100%;border-radius:12px;display:block;margin:0 auto}
+.gen-preview .stats-preview-wrap{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(170,142,78,.3)}
+.gen-preview .stats-preview-label{font-size:.72rem;color:#c9b06b;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-align:left}
 .gen-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.gen-actions button{padding:8px 18px;border-radius:40px;border:none;font-weight:bold;font-size:.8rem;cursor:pointer;font-family:inherit;color:#f5efdb}
+.gen-actions button{padding:8px 18px;border-radius:40px;border:none;outline:none;font-weight:bold;font-size:.8rem;cursor:pointer;font-family:inherit;color:#f5efdb}
 .gen-actions #generatePreviewBtn{background:#8a6a3c}
 .gen-actions #downloadImgBtn{background:#4a6a8a}
+.gen-actions #downloadStatsBtn{background:#5a7a4a;display:none}
 .gen-actions #genCloseBtn{background:#5a4a3a}
 .gen-actions button:hover{filter:brightness(1.15)}
 .gen-actions button:disabled{opacity:.5;cursor:not-allowed}
 .gen-status{text-align:center;font-size:.78rem;color:#c9b06b;margin-top:10px;display:none}
+.kapi-note{background:rgba(90,110,140,.15);border:1px solid rgba(120,150,190,.4);border-radius:14px;padding:8px 12px;font-size:.7rem;line-height:1.7;color:#c9d8ee;margin-bottom:10px}
+.kapi-note.warn{background:rgba(200,120,60,.15);border-color:rgba(220,140,60,.45);color:#ffd0a0}
 
 .print-notice{background:rgba(201,165,59,.1);border:1px solid rgba(201,165,59,.4);border-radius:16px;padding:10px 14px;font-size:.72rem;line-height:1.75;color:#e9dbbd;margin-bottom:12px}
 .print-notice a{color:#ffd966;font-weight:700;text-decoration:underline}
 .pdf-page-hint{text-align:center;font-size:.78rem;color:#c9b06b;margin-top:10px;font-weight:600}
 .pdf-back-preview{display:none;margin:8px 0 0;text-align:center}
 .pdf-back-preview img{max-height:130px;border-radius:8px;border:1px solid #aa8e4e}
-.kapi-note{background:rgba(90,110,140,.15);border:1px solid rgba(120,150,190,.4);border-radius:14px;padding:8px 12px;font-size:.7rem;line-height:1.7;color:#c9d8ee;margin-bottom:10px}
 
-/* 上传模态框 */
 .upload-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);z-index:3200;align-items:center;justify-content:center;padding:20px}
 .upload-content{background:#1a1c12;border-radius:28px;border:2px solid #c9aa5b;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;padding:20px}
 .upload-form-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;align-items:center}
@@ -389,10 +404,10 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
     <div class="gen-content" style="max-width:750px;">
         <div class="gen-body">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <div class="modal-stats-title" style="font-size:1.2rem;font-weight:bold;color:#ffefbf;">📊 卡组统计</div>
-                <span class="modal-close-stats" id="statsModalClose" style="font-size:1.8rem;cursor:pointer;color:#e9d49c;">&times;</span>
+                <div style="font-size:1.2rem;font-weight:bold;color:#ffefbf;">📊 卡组统计</div>
+                <span id="statsModalClose" style="font-size:1.8rem;cursor:pointer;color:#e9d49c;">&times;</span>
             </div>
-            <div id="modalHistogramBars" class="histogram-bars" style="display:flex;align-items:flex-end;justify-content:center;gap:4px;margin:6px 0 4px;height:150px;padding:0 8px;"></div>
+            <div id="modalHistogramBars" style="display:flex;align-items:flex-end;justify-content:center;gap:4px;margin:6px 0 4px;height:150px;padding:0 8px;"></div>
             <div id="modalTypeSummary" style="display:flex;gap:24px;justify-content:center;margin-top:12px;padding-bottom:10px;flex-wrap:wrap;border-bottom:1px solid #aa8e4e;font-weight:bold;font-size:1rem;color:#ffefb9;"></div>
             <div id="modalRarityStats" style="display:flex;gap:24px;justify-content:center;margin-top:12px;flex-wrap:wrap;padding:6px 0;font-weight:bold;font-size:.9rem;"></div>
         </div>
@@ -408,7 +423,6 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
             <button class="gen-tab" data-tab="pdf">🖨️ 打印 PDF</button>
         </div>
         <div class="gen-body">
-            <!-- 通用：基础 -->
             <div class="section-label">📐 基础</div>
             <div class="gen-controls">
                 <div class="gen-control"><label>每行数量</label><input type="number" id="imgCols" value="10" min="1" max="40"></div>
@@ -432,10 +446,9 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 </div>
             </div>
 
-            <!-- 通用：附件 -->
             <div class="section-label" style="margin-top:12px;">📎 附件</div>
-            <div class="switch-row" id="switchRowContainer">
-                <div class="switch-item" id="switchItemHeadquarter">
+            <div class="switch-row">
+                <div class="switch-item">
                     <div class="switch-item-top"><span>🏛️ 总部</span><label class="switch"><input type="checkbox" id="headquarterToggle"><span class="slider"></span></label></div>
                     <div class="switch-item-input" id="headquarterInputDiv">
                         <input type="text" id="headquarterNameInput" placeholder="总部英文名 (例: MOSCOW)">
@@ -449,21 +462,20 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                         </div>
                     </div>
                 </div>
-                <div class="switch-item" id="switchItemStatsCard">
+                <div class="switch-item">
                     <div class="switch-item-top"><span>📊 统计卡</span><label class="switch"><input type="checkbox" id="statsCardToggle" checked><span class="slider"></span></label></div>
-                    <div class="switch-item-input" id="statsCardInputDiv"><input type="text" id="statsCardTitle" placeholder="统计卡标题 (默认: 卡组统计)"></div>
+                    <div class="switch-item-input show" id="statsCardInputDiv"><input type="text" id="statsCardTitle" placeholder="统计卡标题 (默认: 卡组统计)"></div>
                 </div>
-                <div class="switch-item" id="switchItemQrCard">
+                <div class="switch-item">
                     <div class="switch-item-top"><span>📱 二维码</span><label class="switch"><input type="checkbox" id="qrToggle"><span class="slider"></span></label></div>
                     <div class="switch-item-input" id="qrCardInputDiv"><input type="text" id="qrCardTitle" placeholder="二维码标题 (默认: 卡组二维码)"></div>
                 </div>
             </div>
 
-            <!-- 通用：高级 -->
             <div class="section-label" style="margin-top:12px;">⚙️ 高级</div>
             <div id="cardVersionList">
                 <div class="version-list-header" id="versionListToggle">
-                    <span style="color:#e9dbbd;font-size:.85rem;font-weight:600;">📋 卡牌版本</span>
+                    <span style="color:#e9dbbd;font-size:.85rem;font-weight:600;">📋 卡牌版本 / 花费 / 星标</span>
                     <span id="versionListArrow" style="color:#c9b06b;font-size:.8rem;">▶</span>
                 </div>
                 <div id="versionListContent">
@@ -475,7 +487,6 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 </div>
             </div>
 
-            <!-- 本地参数 -->
             <div class="tab-panel" data-panel="local">
                 <div class="section-label" style="margin-top:12px;">🖼️ 本地参数</div>
                 <div class="gen-controls">
@@ -487,22 +498,22 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 <div style="font-size:.68rem;color:#9c9068;line-height:1.7;">※ 画质仅影响网络图片请求的压缩率；比例影响卡片与画布尺寸；间距为负时卡片可能重叠。</div>
             </div>
 
-            <!-- KAPI 参数 -->
             <div class="tab-panel" data-panel="kapi" style="display:none;">
                 <div class="section-label" style="margin-top:12px;">⚡ KAPI 参数</div>
-                <div class="kapi-note">KAPI 模式使用官方 API 渲染图片（包含卡图与文本，无需本地绘制）。<b>自定义卡牌将被空出，并在返回的图片上叠加。</b>该模式下统计卡与二维码卡不可用。</div>
+                <div class="kapi-note">KAPI 模式使用官方 API 渲染图片。高级参数（版本 / 花费 / 星标）会通过 <code>cardOverrides</code> 发送。</div>
+                <div id="kapiCustomNotice" class="kapi-note warn" style="display:none;"></div>
                 <div class="gen-controls">
                     <div class="gen-control"><label>比例 (25% - 100%)</label><div class="range-row"><input type="range" id="kapiScale" min="25" max="100" value="100"><input type="number" id="kapiScaleNum" min="25" max="100" value="100"></div></div>
                     <div class="gen-control"><label>横间距 px</label><input type="number" id="kapiSpacingX" value="0" min="-500" max="500" step="1"></div>
                     <div class="gen-control"><label>纵间距 px</label><input type="number" id="kapiSpacingY" value="0" min="-500" max="500" step="1"></div>
-                    <div class="gen-control" style="flex:.6;min-width:80px;display:flex;align-items:center;gap:8px;">
+                    <div class="gen-control" style="flex:.7;min-width:100px;display:flex;align-items:center;gap:8px;">
                         <label style="margin:0;">额外统计图</label>
                         <label class="switch" style="width:44px;height:24px;"><input type="checkbox" id="kapiStatsChart"><span class="slider" style="height:24px;"></span></label>
                     </div>
                 </div>
+                <div style="font-size:.68rem;color:#9c9068;line-height:1.7;">※ 开启「额外统计图」后，API 会额外返回一张统计图，可在下方预览并下载。</div>
             </div>
 
-            <!-- PDF 参数 -->
             <div class="tab-panel" data-panel="pdf" style="display:none;">
                 <div class="section-label" style="margin-top:12px;">🖨️ 打印 PDF</div>
                 <div class="print-notice">
@@ -548,6 +559,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
             <div class="gen-actions">
                 <button id="generatePreviewBtn">✨ 生成预览</button>
                 <button id="downloadImgBtn">💾 下载图片</button>
+                <button id="downloadStatsBtn">📊 下载统计图</button>
                 <button id="genCloseBtn">关闭</button>
             </div>
         </div>
@@ -580,42 +592,42 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 
 <script>
 // ==================== 版本与常量 ====================
-const VERSION = 53;
-const DEFAULT_VERSION = `v${VERSION}`;
+const VERSION=53;
+const DEFAULT_VERSION=`v${VERSION}`;
 function generateVersionList(){const a=[];for(let i=0;i<=12;i++)a.push(`v${VERSION-i}`);return a;}
-const AVAILABLE_VERSIONS = generateVersionList();
+const AVAILABLE_VERSIONS=generateVersionList();
 
-const attrTranslation = {"blitz":"闪击","fury":"奋战","smokescreen":"烟幕","pincer":"钳击","salvage":"收缴","guard":"守护","heavyArmor1":"重甲 1","heavyArmor2":"重甲 2","heavyArmor3":"重甲 3","alpine":"山地","mobilize":"动员","covert":"隐蔽","shock":"冲击","bond":"协力","ambush":"伏击","intel1":"情报 1","intel2":"情报 2","intel3":"情报 3"};
-const setTranslation = {"Base":"基础","Allegiance":"忠诚","Breakthrough":"突破","Legions":"军团","WorldAtWar":"世纪大战","TheatersOfWar":"战区","BrothersInArms":"战友","WinterWar":"冬季战争","CovertOps":"秘密行动","BloodAndIron":"铁与血","NavalWarfare":"海战","Homefront":"国土阵线","OceaniaStorm":"澳新风暴"};
-const setIconMap = {"Base":"https://www.datocms-assets.com/120590/1732572097-set-icon-base.svg","Allegiance":"https://www.datocms-assets.com/120590/1732572215-set-icon-allegiance.svg","Breakthrough":"https://www.datocms-assets.com/120590/1732572199-set-icon-breakthrough.svg","Legions":"https://www.datocms-assets.com/120590/1732572188-set-icon-legions.svg","WorldAtWar":"https://www.datocms-assets.com/120590/1732572859-set-icon-world.png","TheatersOfWar":"https://www.datocms-assets.com/120590/1732572178-set-icon-theaters.svg","BrothersInArms":"https://www.datocms-assets.com/120590/1732573000-set-icon-brothers.png","WinterWar":"https://www.datocms-assets.com/120590/1732572120-set-icon-winter.svg","CovertOps":"https://www.datocms-assets.com/120590/1732572110-set-icon-covert.svg","BloodAndIron":"https://www.datocms-assets.com/120590/1732573199-set-icon-blood.svg","NavalWarfare":"https://www.datocms-assets.com/120590/1750348798-naval-warfare.svg","Homefront":"https://www.datocms-assets.com/120590/1763718716-homefront.svg","OceaniaStorm":"https://www.datocms-assets.com/120590/1780567349-oceania_storm_set-icon.svg"};
+const attrTranslation={"blitz":"闪击","fury":"奋战","smokescreen":"烟幕","pincer":"钳击","salvage":"收缴","guard":"守护","heavyArmor1":"重甲 1","heavyArmor2":"重甲 2","heavyArmor3":"重甲 3","alpine":"山地","mobilize":"动员","covert":"隐蔽","shock":"冲击","bond":"协力","ambush":"伏击","intel1":"情报 1","intel2":"情报 2","intel3":"情报 3"};
+const setTranslation={"Base":"基础","Allegiance":"忠诚","Breakthrough":"突破","Legions":"军团","WorldAtWar":"世纪大战","TheatersOfWar":"战区","BrothersInArms":"战友","WinterWar":"冬季战争","CovertOps":"秘密行动","BloodAndIron":"铁与血","NavalWarfare":"海战","Homefront":"国土阵线","OceaniaStorm":"澳新风暴"};
+const setIconMap={"Base":"https://www.datocms-assets.com/120590/1732572097-set-icon-base.svg","Allegiance":"https://www.datocms-assets.com/120590/1732572215-set-icon-allegiance.svg","Breakthrough":"https://www.datocms-assets.com/120590/1732572199-set-icon-breakthrough.svg","Legions":"https://www.datocms-assets.com/120590/1732572188-set-icon-legions.svg","WorldAtWar":"https://www.datocms-assets.com/120590/1732572859-set-icon-world.png","TheatersOfWar":"https://www.datocms-assets.com/120590/1732572178-set-icon-theaters.svg","BrothersInArms":"https://www.datocms-assets.com/120590/1732573000-set-icon-brothers.png","WinterWar":"https://www.datocms-assets.com/120590/1732572120-set-icon-winter.svg","CovertOps":"https://www.datocms-assets.com/120590/1732572110-set-icon-covert.svg","BloodAndIron":"https://www.datocms-assets.com/120590/1732573199-set-icon-blood.svg","NavalWarfare":"https://www.datocms-assets.com/120590/1750348798-naval-warfare.svg","Homefront":"https://www.datocms-assets.com/120590/1763718716-homefront.svg","OceaniaStorm":"https://www.datocms-assets.com/120590/1780567349-oceania_storm_set-icon.svg"};
 
-const typeNameMap = {"infantry":"步兵","tank":"坦克","fighter":"战斗机","bomber":"轰炸机","artillery":"炮兵","order":"指令","countermeasure":"反制"};
-const unitTypes = ["infantry","tank","fighter","bomber","artillery"];
-const rarityClassMap = {"Standard":"rarity-standard","Limited":"rarity-limited","Special":"rarity-special","Elite":"rarity-elite"};
-const rarityDisplayMap = {"Standard":"普通","Limited":"限定","Special":"特殊","Elite":"精英"};
-const rarityColor = {"Standard":"#9e9e9e","Limited":"#cd7f32","Special":"#c0c0c0","Elite":"#ffd700"};
-const factionNames = {"soviet":"苏联","usa":"美国","poland":"波兰","neutral":"中立","japan":"日本","italy":"意大利","france":"法国","britain":"英国","finland":"芬兰","germany":"德国","anzac":"澳新军团"};
-const factionColor = {"germany":"#5A5F55","britain":"#857A60","soviet":"#4F3826","usa":"#434B32","japan":"#90723C","france":"#283454","italy":"#555248","poland":"#645633","finland":"#C9C8BC","anzac":"#9E6F34","neutral":"#6b6e5c"};
-const allNationOptions = ["germany","britain","japan","soviet","usa","france","italy","poland","finland","anzac"];
-const mainNationOptions = ["germany","britain","japan","soviet","usa"];
-const STATIC_COSTS = ["0","1","2","3","4","5","6","7+"];
-const STATIC_RARITIES = ["Standard","Limited","Special","Elite"];
-const TYPE_COLOR = {"infantry":"#e8e4d0","tank":"#e8e4d0","fighter":"#e8e4d0","bomber":"#e8e4d0","artillery":"#e8e4d0","order":"#f5c542","countermeasure":"#5a5a5a"};
-const ATTR_GROUPS = [["heavyArmor1","heavyArmor2","heavyArmor3"],["intel1","intel2","intel3"]];
-const SEARCH_LANGS = ["zh-Hans","zh-Hant","en-EN","ja-JP","ko-KR","ru-RU","de-DE","fr-FR","it-IT","es-ES","pt-BR","pl-PL"];
+const typeNameMap={"infantry":"步兵","tank":"坦克","fighter":"战斗机","bomber":"轰炸机","artillery":"炮兵","order":"指令","countermeasure":"反制"};
+const unitTypes=["infantry","tank","fighter","bomber","artillery"];
+const rarityClassMap={"Standard":"rarity-standard","Limited":"rarity-limited","Special":"rarity-special","Elite":"rarity-elite"};
+const rarityDisplayMap={"Standard":"普通","Limited":"限定","Special":"特殊","Elite":"精英"};
+const rarityColor={"Standard":"#9e9e9e","Limited":"#cd7f32","Special":"#c0c0c0","Elite":"#ffd700"};
+const factionNames={"soviet":"苏联","usa":"美国","poland":"波兰","neutral":"中立","japan":"日本","italy":"意大利","france":"法国","britain":"英国","finland":"芬兰","germany":"德国","anzac":"澳新军团"};
+const factionColor={"germany":"#5A5F55","britain":"#857A60","soviet":"#4F3826","usa":"#434B32","japan":"#90723C","france":"#283454","italy":"#555248","poland":"#645633","finland":"#C9C8BC","anzac":"#9E6F34","neutral":"#6b6e5c"};
+const allNationOptions=["germany","britain","japan","soviet","usa","france","italy","poland","finland","anzac"];
+const mainNationOptions=["germany","britain","japan","soviet","usa"];
+const STATIC_COSTS=["0","1","2","3","4","5","6","7+"];
+const STATIC_RARITIES=["Standard","Limited","Special","Elite"];
+const TYPE_COLOR={"infantry":"#e8e4d0","tank":"#e8e4d0","fighter":"#e8e4d0","bomber":"#e8e4d0","artillery":"#e8e4d0","order":"#f5c542","countermeasure":"#5a5a5a"};
+const ATTR_GROUPS=[["heavyArmor1","heavyArmor2","heavyArmor3"],["intel1","intel2","intel3"]];
+const SEARCH_LANGS=["zh-Hans","zh-Hant","en-EN","ja-JP","ko-KR","ru-RU","de-DE","fr-FR","it-IT","es-ES","pt-BR","pl-PL"];
 
 // ==================== 全局状态 ====================
-let allCards=[], filteredCards=[], deckMap=new Map();
-let currentPage=1, PAGE_SIZE=20;
-let mainNation="usa", allyNation="finland";
+let allCards=[],filteredCards=[],deckMap=new Map();
+let currentPage=1,PAGE_SIZE=20;
+let mainNation="usa",allyNation="finland";
 let selectedFilters={factions:new Set(),types:new Set(),costs:new Set(),rarities:new Set(),attributes:new Set(),sets:new Set()};
-let whiteboardMode=false, attrInvert=false, strictSearch=false;
-let cardIndex={}, parentOfMap={}, veteranMap={}, becomesVeteranMap={};
-let cardVersionMap=new Map(), cardCostMap=new Map(), cardStarMap=new Map();
+let whiteboardMode=false,attrInvert=false,strictSearch=false;
+let cardIndex={},parentOfMap={},veteranMap={},becomesVeteranMap={};
+let cardVersionMap=new Map(),cardCostMap=new Map(),cardStarMap=new Map();
 let cardDisplayLang=new Map();
 let cropTemplate=null;
-let customHeadquarterImage=null; // { dataUrl } 已加载的自定义总部图片
-let pdfBackData=null; // 卡背 dataURL
+let customHeadquarterImage=null;
+let pdfBackData=null;
 
 const languages=[
   {code:'zh-Hans',label:'简体中文',flag:'🇨🇳'},{code:'zh-Hant',label:'繁體中文',flag:'🇨🇳'},
@@ -713,16 +725,12 @@ function matchSearchCondition(card,mode,pattern,strict){
   if(!re) return true;
   return texts.some(t=>{re.lastIndex=0;return re.test(t);});
 }
-// 原文兜底匹配
 function literalMatchCondition(card,mode,pattern,strict){
   if(!pattern) return false;
   const texts=getSearchTexts(card,mode);
   if(!texts.length) return false;
   const needle=strict?pattern:pattern.toLowerCase();
-  return texts.some(t=>{
-    const hay=strict?t:t.toLowerCase();
-    return hay.includes(needle);
-  });
+  return texts.some(t=>{const hay=strict?t:t.toLowerCase();return hay.includes(needle);});
 }
 function parseQueryParts(query){
   const q=(query||'').trim();
@@ -737,13 +745,9 @@ function parseQueryParts(query){
 function searchCardMatch(card,query,strict){
   const parts=parseQueryParts(query);
   if(parts.length===0) return true;
-  // 正则匹配 OR 原文兜底
   const regexOk=parts.every(({mode,pat})=>matchSearchCondition(card,mode,pat,strict));
   if(regexOk) return true;
-  return parts.every(({mode,pat})=>{
-    // 对含特殊字符的场景，使用原文匹配做兜底
-    return literalMatchCondition(card,mode,pat,strict) || matchSearchCondition(card,mode,pat,strict);
-  });
+  return parts.every(({mode,pat})=>literalMatchCondition(card,mode,pat,strict)||matchSearchCondition(card,mode,pat,strict));
 }
 function matchFieldTexts(fieldTexts,pat,strict){
   if(pat===''){return fieldTexts.length===0||fieldTexts.every(t=>t.trim()==='');}
@@ -791,31 +795,14 @@ async function loadData(){
     allCards=rawCards.map((raw,idx)=>{
       const j=raw.json||{};
       return {
-        id:raw.id??idx,
-        cardId:j.id||raw.cardId||"",
-        importId:raw.importId||j.import_id||"",
+        id:raw.id??idx,cardId:j.id||raw.cardId||"",importId:raw.importId||j.import_id||"",
         titleZh:j.title?.["zh-Hans"]||j.title?.en||"未找到",
-        text_zh:j.text?.["zh-Hans"]||"",
-        textMap:j.text||{},
-        titleMap:j.title||{},
-        faction:(j.faction||"").toLowerCase(),
-        type:j.type||"",
-        rarity:j.rarity||"Standard",
-        cost:j.kredits??0,
-        attack:j.attack,
-        defense:j.defense,
-        operationCost:j.operationCost,
-        attributes:j.attributes||[],
-        setName:j.set||"基础",
-        image:j.image||"",
-        reserved:raw.reserved===true,
-        isSpawn:j.set==="OnlySpawnable",
-        isVeteranSet:j.set==="Special",
-        canCreate:j.can_create||[],
-        rawJson:j,
-        isCustom:false,
-        imageData:null,
-        imageFit:'cover'
+        text_zh:j.text?.["zh-Hans"]||"",textMap:j.text||{},titleMap:j.title||{},
+        faction:(j.faction||"").toLowerCase(),type:j.type||"",rarity:j.rarity||"Standard",
+        cost:j.kredits??0,attack:j.attack,defense:j.defense,operationCost:j.operationCost,
+        attributes:j.attributes||[],setName:j.set||"基础",image:j.image||"",
+        reserved:raw.reserved===true,isSpawn:j.set==="OnlySpawnable",isVeteranSet:j.set==="Special",
+        canCreate:j.can_create||[],rawJson:j,isCustom:false,imageData:null,imageFit:'cover'
       };
     });
     allCards.forEach((c,i)=>c._index=i);
@@ -830,16 +817,9 @@ async function loadData(){
         if(a.startsWith("VeteranOf:")){const oid=a.replace("VeteranOf:","");veteranMap[oid]=c.cardId;becomesVeteranMap[c.cardId]=oid;}
       }
     }
-    initAllFilters();
-    bindFilterEvents();
-    bindDeckEvents();
-    bindGenModalEvents();
-    bindUploadEvents();
-    bindPdfEvents();
-    applyFilters();
-    updateFactionStats();
-    renderDeckList('deckListContainer');
-    renderDeckList('mobileDeckList');
+    initAllFilters();bindFilterEvents();bindDeckEvents();bindGenModalEvents();bindUploadEvents();bindPdfEvents();
+    applyFilters();updateFactionStats();
+    renderDeckList('deckListContainer');renderDeckList('mobileDeckList');
     document.getElementById('uploadBar').style.display='block';
   }catch(e){
     console.error(e);
@@ -864,12 +844,10 @@ function initAllFilters(){
   const sc=document.getElementById('setMultiContainer');
   sc.innerHTML=Object.keys(setTranslation).map(s=>{const icon=setIconMap[s]||'';return `<div class="filter-chip" data-filter="set" data-val="${s}">${icon?`<img src="${icon}" width="18" height="18" onerror="this.style.display='none'">`:''} ${setTranslation[s]}</div>`;}).join('');
 
-  // 语言选项
   const langSel=document.getElementById('imgLang');
   langSel.innerHTML=languages.map(l=>`<option value="${l.code}">${l.flag} ${l.label}</option>`).join('');
   langSel.value='zh-Hans';
 
-  // 国家选择器
   const mainOpts=mainNationOptions.map(f=>`<option value="${f}">${factionNames[f]}</option>`).join('');
   const allyOpts=allNationOptions.map(f=>`<option value="${f}">${factionNames[f]}</option>`).join('');
   ['mainNationSelect','mobileMainNation'].forEach(id=>document.getElementById(id).innerHTML=mainOpts);
@@ -879,11 +857,9 @@ function initAllFilters(){
   document.getElementById('mobileMainNation').value=mainNation;
   document.getElementById('mobileAllyNation').value=allyNation;
 
-  // 上传阵营
   const uf=document.getElementById('uploadFaction');
   uf.innerHTML=[...allNationOptions,'neutral'].map(f=>`<option value="${f}">${factionNames[f]}</option>`).join('');
 
-  // 版本集合选择
   const setAllSel=document.getElementById('setAllVersionSelect');
   setAllSel.innerHTML=AVAILABLE_VERSIONS.map(v=>`<option value="${v}"${v===DEFAULT_VERSION?' selected':''}>${v.toUpperCase()}</option>`).join('');
 }
@@ -1121,7 +1097,6 @@ function updateAllDecksUI(){
   const total=Array.from(deckMap.values()).reduce((s,e)=>s+e.count,0);
   document.getElementById('mobileToggleCount').innerText=total;
 }
-
 function renderDeckList(containerId){
   const container=document.getElementById(containerId);
   if(!container) return;
@@ -1136,7 +1111,6 @@ function renderDeckList(containerId){
     const rcl=rarityClassMap[c.rarity]||"rarity-standard";
     const rd=rarityDisplayMap[c.rarity]||c.rarity;
     const resv=c.reserved?'<i class="deck-card-reserve-icon"></i>':'';
-    const lang=getDisplayLang(c);
     const title=getDisplayTitle(c);
     html+=`<div class="deck-card-row" data-card-id="${c.id}" style="border-left-color:${bc};">
       <div class="deck-card-icon" style="background-image:url('${c.faction}.svg');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
@@ -1499,11 +1473,8 @@ function updateCardVersionList(){
 async function loadImg(src,cors){return new Promise((resolve,reject)=>{const img=new Image();if(cors)img.crossOrigin='Anonymous';img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('图片加载失败'));img.src=src;});}
 
 async function generateDeckImageLocal(opts){
-  const {
-    cols=10, quality=20, scale=100, lang='zh-Hans', addStatsCard=true, bgColor='transparent',
-    cardsWithVersion, foldEnabled=false, qrEnabled=false, statsTitle=null, qrTitle=null,
-    spacingX=0, spacingY=0
-  } = opts;
+  const {cols=10,quality=20,scale=100,lang='zh-Hans',addStatsCard=true,bgColor='transparent',
+    cardsWithVersion,foldEnabled=false,qrEnabled=false,statsTitle=null,qrTitle=null,spacingX=0,spacingY=0}=opts;
   if(!cardsWithVersion||cardsWithVersion.length===0) throw new Error("卡组为空");
 
   const scaleFactor=Math.max(25,Math.min(100,scale))/100;
@@ -1550,7 +1521,7 @@ async function generateDeckImageLocal(opts){
   const ctx=canvas.getContext('2d');
   if(bgColor&&bgColor!=='transparent'){ctx.fillStyle=bgColor;ctx.fillRect(0,0,canvas.width,canvas.height);}
 
-  const drawnFoldSet=new Set(),drawnStarSet=new Set();
+  const drawnFoldSet=new Set();
   const drawTag=(text,x,y,color,bg='rgba(0,0,0,0.85)')=>{
     ctx.save();ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;
     ctx.font=`bold ${Math.max(14,28*scaleFactor)}px "Segoe UI"`;
@@ -1573,9 +1544,8 @@ async function generateDeckImageLocal(opts){
         const card=item.card;
         let ver=item.version||DEFAULT_VERSION;
         let img;
-        if(card.isCustom&&card.imageData){
-          img=await loadImg(card.imageData,false);
-        }else{
+        if(card.isCustom&&card.imageData){img=await loadImg(card.imageData,false);}
+        else{
           if(!card.isHeadquarter&&!await probeImageExists(card.image,lang,ver)) ver=DEFAULT_VERSION;
           const url=getCardImageUrl(card.image,lang,ver,quality);
           img=await loadImg(url,true);
@@ -1595,7 +1565,6 @@ async function generateDeckImageLocal(opts){
           ctx.drawImage(img,x,y,cardW,cardH);
         }
         ctx.restore();
-
         if(foldEnabled){
           const cnt=cardCountMap[card.cardId]||0;
           if(cnt>1&&!drawnFoldSet.has(card.cardId)){drawTag('×'+(cnt>99?'99+':cnt),x,y+99*scaleFactor,'#fff');drawnFoldSet.add(card.cardId);}
@@ -1703,25 +1672,36 @@ async function drawQrCard(ctx,x,y,w,h,radius,qrData,title){
 let currentTab='local';
 let currentPreviewCanvas=null;
 let kapiResultImage=null;
+let kapiStatsChartImage=null;
 
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.gen-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display=(p.dataset.panel===tab)?'block':'none';});
-  // KAPI 模式禁用统计卡/二维码
-  const statsCb=document.getElementById('statsCardToggle');
-  const qrCb=document.getElementById('qrToggle');
-  if(tab==='kapi'){
-    statsCb.disabled=true;qrCb.disabled=true;
-    statsCb.checked=false;qrCb.checked=false;
+  updateKapiCustomNotice();
+}
+
+// 检测当前卡组是否包含自定义卡牌（用于 KAPI 提示）
+function deckHasCustomCards(){
+  for(const {card} of deckMap.values()){
+    if(card.isCustom||!card.importId) return true;
+  }
+  return false;
+}
+function updateKapiCustomNotice(){
+  const notice=document.getElementById('kapiCustomNotice');
+  if(!notice) return;
+  if(currentTab!=='kapi'){notice.style.display='none';return;}
+  if(deckHasCustomCards()){
+    notice.style.display='block';
+    notice.textContent='⚠️ 检测到自定义卡牌：KAPI 请求将忽略「统计卡」与「二维码卡」参数，自定义卡牌会在返回图片上叠加绘制。';
   }else{
-    statsCb.disabled=false;qrCb.disabled=false;
+    notice.style.display='none';
   }
 }
 
 function bindGenModalEvents(){
   initCardVersionList();
-  // 语言背景
   const bgSel=document.getElementById('bgColorSelect');
   const bgCustom=document.getElementById('bgColorCustom');
   const bgLabel=document.getElementById('bgColorLabel');
@@ -1730,7 +1710,7 @@ function bindGenModalEvents(){
     else{bgCustom.style.display='none';bgLabel.style.display='none';}
   });
   bgCustom.addEventListener('input',()=>{bgLabel.textContent=bgCustom.value;});
-  // 滑条数值同步
+
   const qRange=document.getElementById('imgQuality'),qNum=document.getElementById('imgQualityNum');
   qRange.addEventListener('input',()=>qNum.value=qRange.value);
   qNum.addEventListener('input',()=>{let v=parseInt(qNum.value);if(isNaN(v))v=20;v=Math.max(1,Math.min(100,v));qRange.value=v;});
@@ -1741,7 +1721,6 @@ function bindGenModalEvents(){
   kRange.addEventListener('input',()=>kNum.value=kRange.value);
   kNum.addEventListener('input',()=>{let v=parseInt(kNum.value);if(isNaN(v))v=100;v=Math.max(25,Math.min(100,v));kRange.value=v;});
 
-  // 总部输入联动
   const hqT=document.getElementById('headquarterToggle');
   const hqDiv=document.getElementById('headquarterInputDiv');
   hqT.addEventListener('change',function(){hqDiv.classList.toggle('show',this.checked);});
@@ -1752,15 +1731,12 @@ function bindGenModalEvents(){
   const qDiv=document.getElementById('qrCardInputDiv');
   qT.addEventListener('change',function(){qDiv.classList.toggle('show',this.checked);});
   sDiv.classList.add('show');
-  // 总部 URL
+
   document.getElementById('headquarterUrlApply').addEventListener('click',async()=>{
     const url=document.getElementById('headquarterUrlInput').value.trim();
     if(!url){alert('请输入 URL');return;}
-    try{
-      const dataUrl=await fetchImageAsDataUrl(url);
-      customHeadquarterImage=dataUrl;
-      alert('自定义总部图片已应用');
-    }catch(e){alert('加载失败: '+e.message);}
+    try{const dataUrl=await fetchImageAsDataUrl(url);customHeadquarterImage=dataUrl;alert('自定义总部图片已应用');}
+    catch(e){alert('加载失败: '+e.message);}
   });
   document.getElementById('headquarterFileInput').addEventListener('change',async function(){
     if(!this.files[0]) return;
@@ -1770,26 +1746,27 @@ function bindGenModalEvents(){
   });
   document.getElementById('headquarterClearImg').addEventListener('click',()=>{customHeadquarterImage=null;alert('已清除自定义总部图片');});
 
-  // Tab 切换
-  document.querySelectorAll('.gen-tab').forEach(t=>{
-    t.addEventListener('click',()=>switchTab(t.dataset.tab));
-  });
-
-  // 生成预览按钮
+  document.querySelectorAll('.gen-tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
   document.getElementById('generatePreviewBtn').addEventListener('click',doGeneratePreview);
   document.getElementById('genCloseBtn').addEventListener('click',()=>{document.getElementById('genModal').style.display='none';});
   document.getElementById('genModal').addEventListener('click',e=>{if(e.target===document.getElementById('genModal'))document.getElementById('genModal').style.display='none';});
 
-  // 下载按钮
   document.getElementById('downloadImgBtn').addEventListener('click',()=>{
     if(currentTab==='pdf'){doGeneratePdf();return;}
     const src=currentTab==='kapi'?kapiResultImage:(currentPreviewCanvas?currentPreviewCanvas.toDataURL():null);
     if(!src){alert('请先点击生成预览');return;}
-    const a=document.createElement('a');
-    a.href=src;
-    a.download=`deck_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.png`;
-    a.click();
+    downloadDataUrl(src,`deck_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.png`);
   });
+  document.getElementById('downloadStatsBtn').addEventListener('click',()=>{
+    if(!kapiStatsChartImage){alert('没有可下载的统计图');return;}
+    downloadDataUrl(kapiStatsChartImage,`deck_stats_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.png`);
+  });
+}
+
+function downloadDataUrl(dataUrl,filename){
+  const a=document.createElement('a');
+  a.href=dataUrl;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
 function fileToDataUrl(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file);});}
@@ -1800,7 +1777,6 @@ async function fetchImageAsDataUrl(url){
   return await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob);});
 }
 
-// 生成卡组图片（本地）
 async function buildCardsWithVersion(){
   const lang=document.getElementById('imgLang').value;
   const hqT=document.getElementById('headquarterToggle');
@@ -1850,13 +1826,17 @@ async function doGeneratePreview(){
   const statusEl=document.getElementById('genStatus');
   const setStatus=t=>{statusEl.style.display='block';statusEl.textContent=t;};
   const previewDiv=document.getElementById('imgGenPreview');
+  // 重置下载统计图按钮
+  document.getElementById('downloadStatsBtn').style.display='none';
+  kapiStatsChartImage=null;
   try{
     if(currentTab==='local'){
       await generateLocalPreview(setStatus,previewDiv);
     }else if(currentTab==='kapi'){
       await generateKapiPreview(setStatus,previewDiv);
     }else if(currentTab==='pdf'){
-      updatePdfHint();previewDiv.innerHTML='<div style="color:#c9b06b;padding:10px;font-size:.8rem;">请点击「下载图片」生成 PDF</div>';
+      updatePdfHint();
+      previewDiv.innerHTML='<div style="color:#c9b06b;padding:10px;font-size:.8rem;">请点击「下载图片」生成 PDF</div>';
       statusEl.style.display='none';
     }
   }catch(e){
@@ -1900,11 +1880,7 @@ async function generateKapiPreview(setStatus,previewDiv){
   const cards=await buildCardsWithVersion();
   if(!cards||cards.length===0){alert('卡组为空');setStatus('');return;}
 
-  // 分离自定义卡与非自定义卡
-  const customCards=[];
-  const nonCustomEntries=[];
-  const allSlots=cards.slice(); // 保持顺序
-  // 排序同本地
+  const allSlots=cards.slice();
   allSlots.sort((a,b)=>{
     if(a.card.isHeadquarter) return -1;
     if(b.card.isHeadquarter) return 1;
@@ -1914,18 +1890,14 @@ async function generateKapiPreview(setStatus,previewDiv){
     return (a.card.cardId||'').localeCompare(b.card.cardId||'',undefined,{numeric:true,sensitivity:'base'});
   });
 
-  // 构建卡组代码（非自定义）
+  // 检测是否存在自定义卡 / 无 importId 的卡
+  const hasCustomOrNoImport=allSlots.some(it=>it.card.isCustom||!it.card.importId);
+
+  // 构建卡组代码（仅含非自定义有 importId 的卡）
   const codeMap=new Map();
-  const customPositions=[]; // 位置索引
-  for(let i=0;i<allSlots.length;i++){
-    const c=allSlots[i].card;
-    if(c.isCustom){customPositions.push(i);}
-    else if(c.importId){
-      codeMap.set(c.importId,(codeMap.get(c.importId)||0)+1);
-    }else{
-      // 非自定义但无 importId（比如总部）— 通过 emptySlots 空出
-      customPositions.push(i);
-    }
+  for(const it of allSlots){
+    const c=it.card;
+    if(!c.isCustom&&c.importId) codeMap.set(c.importId,(codeMap.get(c.importId)||0)+1);
   }
   const regions=["","","",""];
   for(const [iid,total] of codeMap.entries()){
@@ -1935,43 +1907,57 @@ async function generateKapiPreview(setStatus,previewDiv){
   }
   const deckCode=`%%${getNationCode(mainNation)}${getNationCode(allyNation)}|${regions[0]};${regions[1]};${regions[2]};${regions[3]}`;
 
+  // emptySlots: 自定义/无importId 卡在完整序列中的位置，转换为 KAPI 输出中需要空出的索引
+  const emptySlots=[];
+  let nonCustomIdx=0;
+  for(let i=0;i<allSlots.length;i++){
+    const c=allSlots[i].card;
+    if(c.isCustom||!c.importId){emptySlots.push(nonCustomIdx);}
+    else nonCustomIdx++;
+  }
+
   const scale=parseInt(document.getElementById('kapiScale').value)||100;
   const spacingX=parseInt(document.getElementById('kapiSpacingX').value)||0;
   const spacingY=parseInt(document.getElementById('kapiSpacingY').value)||0;
   const extraStats=document.getElementById('kapiStatsChart').checked;
 
-  // 计算 emptySlots：非自定义卡在 kapi 输出中的槽位
-  // 由于 kapi 只接收非自定义卡，实际顺序与 allSlots 中非自定义卡顺序一致
-  const nonCustomOrder=allSlots.map((it,i)=>({it,i})).filter(x=>!x.it.card.isCustom && x.it.card.importId);
-  // 每个自定义卡在完整序列中的位置 -> 对应在 KAPI 输出中需要空出的索引
-  // KAPI 输出是按非自定义卡顺序排列，我们需要在其对应位置留空
-  // 简化处理：按 allSlots 顺序遍历，每遇到一个自定义卡，记下当前已输出的非自定义卡数量作为空位索引
-  const emptySlots=[];
-  let nonCustomIdx=0;
-  for(let i=0;i<allSlots.length;i++){
-    const c=allSlots[i].card;
-    if(c.isCustom||!c.importId){
-      emptySlots.push(nonCustomIdx);
-    }else{
-      nonCustomIdx++;
-    }
-  }
-
   // 负间距覆盖检测
   const cols=parseInt(document.getElementById('imgCols').value)||10;
   if(spacingX<0||spacingY<0){
     const totalSlots=allSlots.length;
-    for(const pos of customPositions){
-      const row=Math.floor(pos/cols);
-      const col=pos%cols;
+    for(let i=0;i<allSlots.length;i++){
+      const c=allSlots[i].card;
+      if(!(c.isCustom||!c.importId)) continue;
+      const row=Math.floor(i/cols),col=i%cols;
       const hasRight=(col<cols-1)&&((row*cols+col+1)<totalSlots);
       const hasDown=((row+1)*cols+col)<totalSlots;
-      if(spacingX<0&&hasRight){throw new Error(`自定义卡位置 ${pos} 会被右侧卡牌覆盖（横间距为负），请调整间距或减少卡牌`);}
-      if(spacingY<0&&hasDown){throw new Error(`自定义卡位置 ${pos} 会被下方卡牌覆盖（纵间距为负），请调整间距或减少卡牌`);}
+      if(spacingX<0&&hasRight) throw new Error(`自定义卡位置 ${i} 会被右侧卡牌覆盖（横间距为负），请调整间距或减少卡牌`);
+      if(spacingY<0&&hasDown) throw new Error(`自定义卡位置 ${i} 会被下方卡牌覆盖（纵间距为负），请调整间距或减少卡牌`);
     }
   }
 
-  setStatus('⏳ 正在请求 KAPI...');
+  // 构建 cardOverrides（版本 / 花费 / 星标）
+  const cardOverrides={};
+  for(const [cid,entry] of deckMap){
+    const card=entry.card;
+    if(card.isCustom||!card.importId) continue;
+    const ov={};
+    const ver=cardVersionMap.get(card.cardId);
+    const cost=cardCostMap.get(card.cardId);
+    const star=cardStarMap.get(card.cardId);
+    if(ver&&ver!==DEFAULT_VERSION) ov.version=ver;
+    if(cost!==undefined&&cost!==card.cost) ov.cost=cost;
+    if(star) ov.star=true;
+    if(Object.keys(ov).length>0) cardOverrides[card.cardId]=ov;
+  }
+
+  // 用户是否想要统计卡 / 二维码卡
+  const userWantsStats=document.getElementById('statsCardToggle').checked;
+  const userWantsQr=document.getElementById('qrToggle').checked;
+  // 当有自定义卡时，忽略统计卡和二维码卡参数（不改变 UI 开关）
+  const effectiveStatsCard=hasCustomOrNoImport?false:userWantsStats;
+  const effectiveQr=hasCustomOrNoImport?false:userWantsQr;
+
   const body={
     deckCode,
     cols,
@@ -1979,11 +1965,18 @@ async function generateKapiPreview(setStatus,previewDiv){
     spacingX,
     spacingY,
     emptySlots,
+    addStatsCard:effectiveStatsCard,
+    qrEnabled:effectiveQr,
+    statsTitle:document.getElementById('statsCardTitle').value.trim()||null,
+    qrTitle:document.getElementById('qrCardTitle').value.trim()||null,
     statsChartToggle:extraStats,
     lang:document.getElementById('imgLang').value,
     bgColor:getBgColor(),
-    foldEnabled:document.getElementById('foldToggle').checked
+    foldEnabled:document.getElementById('foldToggle').checked,
+    cardOverrides
   };
+
+  setStatus('⏳ 正在请求 KAPI...');
   let resp;
   try{
     resp=await fetch('https://karsenal-api.netlify.app/.netlify/functions/generate',{
@@ -1997,78 +1990,77 @@ async function generateKapiPreview(setStatus,previewDiv){
   const data=await resp.json();
   const mainImage=data.mainImage;
   if(!mainImage) throw new Error('KAPI 未返回图片');
+  kapiStatsChartImage=data.statsChart||null;
 
-  // 将返回图片画到 canvas 上，绘制自定义卡
-  setStatus('⏳ 正在叠加自定义卡牌...');
-  const baseImg=await loadImg(mainImage,false);
-
-  // 计算每张卡在输出中的位置（像素）
-  const scaleFactor=Math.max(25,Math.min(100,scale))/100;
-  const cardW=Math.floor(500*scaleFactor);
-  const cardH=Math.floor(702*scaleFactor);
-
-  const canvas=document.createElement('canvas');
-  canvas.width=baseImg.width;canvas.height=baseImg.height;
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(baseImg,0,0);
-
-  // 遍历自定义卡牌，按其在 nonCustom 输出中的位置绘制
-  // emptySlots 记录了每个自定义卡应插入的位置；绘制位置 = 插入后，所有卡（含空位）按序排列
-  // 构造包含 null 的列表，null 处绘制自定义卡
-  const finalList=[];
-  let nonCustomList=allSlots.filter(it=>!it.card.isCustom && it.card.importId);
-  // 按 emptySlots 插入 null
-  const sortedSlots=[...emptySlots].sort((a,b)=>b-a);
-  for(const idx of sortedSlots){
-    if(idx>=0&&idx<=nonCustomList.length) nonCustomList.splice(idx,0,null);
-  }
-  // 现在 nonCustomList 中 null 的位置就是自定义卡的位置
-  const customIter=allSlots.filter(it=>it.card.isCustom||!it.card.importId);
-  let ci=0;
-  let slotIdx=0;
-  for(let row=0;slotIdx<nonCustomList.length;slotIdx++){
-    const col=slotIdx%cols;
-    row=Math.floor(slotIdx/cols);
-    const item=nonCustomList[slotIdx];
-    if(item===null){
-      const custom=allSlots.find(it=>it.card.isCustom||!it.card.importId);
-      // 按顺序取
-      const target=allSlots.filter(it=>it.card.isCustom||!it.card.importId)[ci++];
-      if(target){
-        const c=target.card;
-        const x=col*(cardW+spacingX);
-        const y=row*(cardH+spacingY);
-        let img;
-        if(c.imageData){
-          img=await loadImg(c.imageData,false);
-        }else{
-          const lang=document.getElementById('imgLang').value;
-          const ver=target.version||DEFAULT_VERSION;
-          img=await loadImg(getCardImageUrl(c.image,lang,ver,100),true);
-        }
-        ctx.save();
-        ctx.beginPath();
-        const r=Math.max(2,Math.floor(15*scaleFactor));
-        ctx.moveTo(x+r,y);ctx.lineTo(x+cardW-r,y);ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+r);ctx.lineTo(x+cardW,y+cardH-r);ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-r,y+cardH);ctx.lineTo(x+r,y+cardH);ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
-        ctx.closePath();ctx.clip();
-        const fit=c.imageFit||'cover';
-        const iA=img.width/img.height,cA=cardW/cardH;
-        let sx=0,sy=0,sw=img.width,sh=img.height;
-        if(fit==='cover'){if(iA>cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
-        else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
-        ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
-        ctx.restore();
+  // 若需要，在返回图上叠加自定义卡
+  let finalImage=mainImage;
+  if(hasCustomOrNoImport){
+    setStatus('⏳ 正在叠加自定义卡牌...');
+    const baseImg=await loadImg(mainImage,false);
+    const scaleFactor=Math.max(25,Math.min(100,scale))/100;
+    const cardW=Math.floor(500*scaleFactor);
+    const cardH=Math.floor(702*scaleFactor);
+    const canvas=document.createElement('canvas');
+    canvas.width=baseImg.width;canvas.height=baseImg.height;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(baseImg,0,0);
+    // 用 sortedSlots 将 null 插入到 nonCustom 顺序中
+    const nonCustomList=allSlots.filter(it=>!it.card.isCustom&&it.card.importId);
+    const sortedSlots=[...emptySlots].sort((a,b)=>b-a);
+    for(const idx of sortedSlots){if(idx>=0&&idx<=nonCustomList.length) nonCustomList.splice(idx,0,null);}
+    // 自定义卡按出现顺序依次填入 null 位置
+    const customList=allSlots.filter(it=>it.card.isCustom||!it.card.importId);
+    let ci=0;
+    for(let i=0;i<nonCustomList.length;i++){
+      const item=nonCustomList[i];
+      if(item!==null) continue;
+      const target=customList[ci++];if(!target) continue;
+      const c=target.card;
+      const row=Math.floor(i/cols),col=i%cols;
+      const x=col*(cardW+spacingX),y=row*(cardH+spacingY);
+      let img;
+      if(c.imageData){img=await loadImg(c.imageData,false);}
+      else{
+        const lang=document.getElementById('imgLang').value;
+        const ver=target.version||DEFAULT_VERSION;
+        img=await loadImg(getCardImageUrl(c.image,lang,ver,100),true);
       }
+      ctx.save();
+      const r=Math.max(2,Math.floor(15*scaleFactor));
+      ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+cardW-r,y);ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+r);ctx.lineTo(x+cardW,y+cardH-r);ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-r,y+cardH);ctx.lineTo(x+r,y+cardH);ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.clip();
+      const fit=c.imageFit||'cover';
+      const iA=img.width/img.height,cA=cardW/cardH;
+      let sx=0,sy=0,sw=img.width,sh=img.height;
+      if(fit==='cover'){if(iA>cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
+      else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
+      ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
+      ctx.restore();
     }
+    finalImage=canvas.toDataURL('image/png');
   }
 
-  kapiResultImage=canvas.toDataURL('image/png');
+  kapiResultImage=finalImage;
   previewDiv.innerHTML='';
+  const mainWrap=document.createElement('div');
   const imgEl=document.createElement('img');
-  imgEl.src=kapiResultImage;
-  imgEl.style.maxWidth='100%';
-  imgEl.style.borderRadius='12px';
-  previewDiv.appendChild(imgEl);
+  imgEl.src=finalImage;
+  mainWrap.appendChild(imgEl);
+  previewDiv.appendChild(mainWrap);
+
+  if(kapiStatsChartImage){
+    const statsWrap=document.createElement('div');
+    statsWrap.className='stats-preview-wrap';
+    const lbl=document.createElement('div');
+    lbl.className='stats-preview-label';
+    lbl.textContent='📊 额外统计图（API 返回）';
+    statsWrap.appendChild(lbl);
+    const sImg=document.createElement('img');
+    sImg.src=kapiStatsChartImage;
+    statsWrap.appendChild(sImg);
+    previewDiv.appendChild(statsWrap);
+    document.getElementById('downloadStatsBtn').style.display='inline-block';
+  }
+
   setStatus('✅ KAPI 预览已生成');
   setTimeout(()=>{statusEl.style.display='none';},1500);
 }
@@ -2229,30 +2221,17 @@ async function doGeneratePdf(){
     console.error(e);alert('PDF 生成失败: '+e.message);statusEl.style.display='none';
   }
 }
-function dataUrlToFile(dataUrl){
-  return fetch(dataUrl).then(r=>r.blob()).then(b=>new File([b],'back.jpg',{type:'image/jpeg'}));
-}
+function dataUrlToFile(dataUrl){return fetch(dataUrl).then(r=>r.blob()).then(b=>new File([b],'back.jpg',{type:'image/jpeg'}));}
 function bindPdfEvents(){
   const paperSel=document.getElementById('pdfPaperSelect');
-  const toggle=()=>{
-    const c=paperSel.value==='custom';
-    document.getElementById('pdfPaperCustomWrap').style.display=c?'block':'none';
-    document.getElementById('pdfPaperCustomWrap2').style.display=c?'block':'none';
-    updatePdfHint();
-  };
+  const toggle=()=>{const c=paperSel.value==='custom';document.getElementById('pdfPaperCustomWrap').style.display=c?'block':'none';document.getElementById('pdfPaperCustomWrap2').style.display=c?'block':'none';updatePdfHint();};
   paperSel.addEventListener('change',toggle);toggle();
   const cs=document.getElementById('pdfCardSizeSelect');
-  const toggleCard=()=>{
-    const c=cs.value==='custom';
-    document.getElementById('pdfCardWWrap').style.display=c?'block':'none';
-    document.getElementById('pdfCardHWrap').style.display=c?'block':'none';
-    updatePdfHint();
-  };
+  const toggleCard=()=>{const c=cs.value==='custom';document.getElementById('pdfCardWWrap').style.display=c?'block':'none';document.getElementById('pdfCardHWrap').style.display=c?'block':'none';updatePdfHint();};
   cs.addEventListener('change',toggleCard);toggleCard();
   ['pdfPaperW','pdfPaperH','pdfOrientation','pdfGapToggle','pdfCropToggle'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;el.addEventListener('input',updatePdfHint);el.addEventListener('change',updatePdfHint);
   });
-  // 卡背
   document.getElementById('pdfBackImage').addEventListener('change',async function(){
     if(!this.files[0]){pdfBackData=null;document.getElementById('pdfBackPreview').style.display='none';return;}
     pdfBackData=await fileToDataUrl(this.files[0]);
