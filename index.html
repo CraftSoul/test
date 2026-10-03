@@ -1167,6 +1167,11 @@
             ["intel1", "intel2", "intel3"]
         ];
 
+        // 搜索可用的语言优先级（简中优先）
+        const SEARCH_LANGS = ["zh-Hans", "zh-Hant", "en-EN", "ja-JP", "ko-KR", "ru-RU", "de-DE", "fr-FR", "it-IT", "es-ES",
+            "pt-BR", "pl-PL"
+        ];
+
         // ==================== 全局状态 ====================
         let allCards = [];
         let filteredCards = [];
@@ -1176,12 +1181,15 @@
             currentModalLang = "zh-Hans",
             currentModalVersion = DEFAULT_VERSION;
 
+        // 每张卡当前应展示的语言（由搜索命中决定，未命中搜索时默认简中）
+        let cardDisplayLang = new Map();
+
         // 卡牌索引与关联
         let cardIndex = {};
         let canCreateMap = {};
         let parentOfMap = {};
-        let veteranMap = {};     // 原版 -> 老兵版
-        let becomesVeteranMap = {}; // 老兵版 -> 原版
+        let veteranMap = {};
+        let becomesVeteranMap = {};
 
         // 选中的筛选器
         let selectedFilters = {
@@ -1194,11 +1202,8 @@
             sets: new Set()
         };
 
-        // "无词条"标志
         let whiteboardMode = false;
-        // 词条“不包含”开关
         let attrInvert = false;
-        // 区分大小写
         let strictSearch = false;
 
         // ==================== 工具函数 ====================
@@ -1225,7 +1230,6 @@
             return [...new Set(filtered)].join(", ");
         }
 
-        // 去掉内部标记后的真实词条
         function getRealAttrs(card) {
             return (card.attributes || []).filter(a =>
                 a !== "OnlySpawnable" &&
@@ -1234,7 +1238,6 @@
             );
         }
 
-        // 根据背景色返回对比文字色
         function contrastText(hex) {
             if (!hex) return "#1e1c10";
             const c = hex.replace('#', '');
@@ -1251,7 +1254,6 @@
             return ` style="--chip-color:${color}; --chip-text:${contrastText(color)};"`;
         }
 
-        // 获取卡牌的有效扩展包（用于筛选）
         function getEffectiveSet(card, visited) {
             visited = visited || new Set();
             if (visited.has(card.cardId)) return card.setName;
@@ -1295,33 +1297,29 @@
                 body = body.slice(1).trim();
             }
             if (body === '' || body === '-') {
-                if (negate) return null;   // !- 忽略
+                if (negate) return null;
                 return { mode: 'none' };
             }
             let m;
-            // n-m 闭区间
             m = body.match(/^(\d+)\s*-\s*(\d+)$/);
             if (m) {
                 const a = parseInt(m[1], 10),
                     b = parseInt(m[2], 10);
                 return { mode: 'range', min: Math.min(a, b), max: Math.max(a, b), negate };
             }
-            // n- 不小于 n
             m = body.match(/^(\d+)\s*-$/);
             if (m) {
                 return { mode: 'min', min: parseInt(m[1], 10), negate };
             }
-            // -n 不大于 n
             m = body.match(/^-\s*(\d+)$/);
             if (m) {
                 return { mode: 'max', max: parseInt(m[1], 10), negate };
             }
-            // 纯数字
             m = body.match(/^(\d+)$/);
             if (m) {
                 return { mode: 'exact', value: parseInt(m[1], 10), negate };
             }
-            return null; // 错误输入忽略
+            return null;
         }
 
         function matchStat(value, expr) {
@@ -1348,28 +1346,29 @@
         }
 
         // ==================== 搜索 ====================
+        // 返回各语言文本数组（不做拼接，保证锚定按语言生效）
         function getSearchTexts(card, mode) {
-    const texts = [];
-    const add = (obj, fallback) => {
-        let added = false;
-        if (obj && typeof obj === 'object') {
-            for (const k in obj) {
-                if (typeof obj[k] === 'string' && obj[k].length) {
-                    texts.push(obj[k]);
-                    added = true;
+            const texts = [];
+            const pushMap = (obj, fallback) => {
+                let added = false;
+                if (obj && typeof obj === 'object') {
+                    for (const k in obj) {
+                        if (typeof obj[k] === 'string' && obj[k].length) {
+                            texts.push(obj[k]);
+                            added = true;
+                        }
+                    }
                 }
+                if (!added && fallback) texts.push(fallback);
+            };
+            if (mode === 'all' || mode === 'title') {
+                pushMap(card.titleMap, card.titleZh || '');
             }
+            if (mode === 'all' || mode === 'text') {
+                pushMap(card.textMap, card.text_zh || '');
+            }
+            return texts;
         }
-        if (!added && fallback) texts.push(fallback);
-    };
-    if (mode === 'all' || mode === 'title') {
-        add(card.titleMap, card.titleZh || '');
-    }
-    if (mode === 'all' || mode === 'text') {
-        add(card.textMap, card.text_zh || '');
-    }
-    return texts;
-}
 
         function escapeReChar(ch) {
             return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1402,29 +1401,26 @@
             }
         }
 
+        // 按语言逐个匹配；任意语言匹配成功即返回 true
         function matchSearchCondition(card, mode, pattern, strict) {
-    const texts = getSearchTexts(card, mode);
-    if (pattern === '') {
-        // 空模式：要求所有文本都为空（trim 后）
-        return texts.every(t => t.trim() === '');
-    }
-    // 如果所有文本都为空，且模式非空，则不匹配
-    if (texts.every(t => t.length === 0)) return false;
-    const re = buildSearchRegex(pattern, strict);
-    if (!re) return true; // 无效正则忽略
-    // 只要有一个文本匹配即可
-    return texts.some(t => {
-        re.lastIndex = 0;
-        return re.test(t);
-    });
-}
+            const texts = getSearchTexts(card, mode);
+            if (pattern === '') {
+                return texts.every(t => t.trim() === '');
+            }
+            if (texts.every(t => t.length === 0)) return false;
+            const re = buildSearchRegex(pattern, strict);
+            if (!re) return true;
+            return texts.some(t => {
+                re.lastIndex = 0;
+                return re.test(t);
+            });
+        }
 
-        function searchCardMatch(card, query, strict) {
+        // 解析条件（返回 mode/pat 列表）
+        function parseQueryParts(query) {
             const q = (query || '').trim();
-            if (!q) return true;
-            const parts = q.split('%').map(s => s.trim()).filter(s => s.length > 0);
-            if (parts.length === 0) return true;
-            for (const part of parts) {
+            if (!q) return [];
+            return q.split('%').map(s => s.trim()).filter(s => s.length > 0).map(part => {
                 let mode = 'all';
                 let pat = part;
                 const m = part.match(/^(title|text):([\s\S]*)$/i);
@@ -1432,9 +1428,79 @@
                     mode = m[1].toLowerCase();
                     pat = m[2];
                 }
+                return { mode, pat };
+            });
+        }
+
+        function searchCardMatch(card, query, strict) {
+            const parts = parseQueryParts(query);
+            if (parts.length === 0) return true;
+            for (const { mode, pat } of parts) {
                 if (!matchSearchCondition(card, mode, pat, strict)) return false;
             }
             return true;
+        }
+
+        // 找到命中的语言（简中优先），未命中返回 null
+        function getMatchedLang(card, query, strict) {
+            const parts = parseQueryParts(query);
+            if (parts.length === 0) return null;
+
+            // 收集每个语言对应的“标题+文本”文本
+            const langTexts = new Map();
+            const ensure = (lang) => {
+                if (!langTexts.has(lang)) langTexts.set(lang, []);
+                return langTexts.get(lang);
+            };
+            for (const lang of SEARCH_LANGS) {
+                const t = card.titleMap ? card.titleMap[lang] : '';
+                const x = card.textMap ? card.textMap[lang] : '';
+                if (t) ensure(lang).push(t);
+                if (x) ensure(lang).push(x);
+            }
+            if (card.titleZh && !card.titleMap?.['zh-Hans']) {
+                ensure('zh-Hans').push(card.titleZh);
+            }
+            if (card.text_zh && !card.textMap?.['zh-Hans']) {
+                ensure('zh-Hans').push(card.text_zh);
+            }
+
+            for (const lang of SEARCH_LANGS) {
+                const texts = langTexts.get(lang);
+                if (!texts || !texts.length) continue;
+                let allOk = true;
+                for (const { mode, pat } of parts) {
+                    let fieldTexts;
+                    if (mode === 'title') {
+                        const v = card.titleMap?.[lang] || (lang === 'zh-Hans' ? card.titleZh : '');
+                        fieldTexts = v ? [v] : [];
+                    } else if (mode === 'text') {
+                        const v = card.textMap?.[lang] || (lang === 'zh-Hans' ? card.text_zh : '');
+                        fieldTexts = v ? [v] : [];
+                    } else {
+                        fieldTexts = texts;
+                    }
+                    if (!matchFieldTexts(fieldTexts, pat, strict)) {
+                        allOk = false;
+                        break;
+                    }
+                }
+                if (allOk) return lang;
+            }
+            return null;
+        }
+
+        function matchFieldTexts(fieldTexts, pat, strict) {
+            if (pat === '') {
+                return fieldTexts.length === 0 || fieldTexts.every(t => t.trim() === '');
+            }
+            if (!fieldTexts.length) return false;
+            const re = buildSearchRegex(pat, strict);
+            if (!re) return true;
+            return fieldTexts.some(t => {
+                re.lastIndex = 0;
+                return re.test(t);
+            });
         }
 
         // ==================== 数据加载 ====================
@@ -1475,13 +1541,11 @@
                     };
                 });
 
-                // 建立索引
                 cardIndex = {};
                 for (let c of allCards) {
                     if (c.cardId) cardIndex[c.cardId] = c;
                 }
 
-                // 建立 can_create 关系
                 canCreateMap = {};
                 parentOfMap = {};
                 for (let c of allCards) {
@@ -1494,7 +1558,6 @@
                     }
                 }
 
-                // 建立老兵关系
                 veteranMap = {};
                 becomesVeteranMap = {};
                 for (let c of allCards) {
@@ -1513,7 +1576,6 @@
                     }
                 }
 
-                // 初始化筛选器
                 initAllFilters();
                 bindFilterEvents();
                 applyFilters();
@@ -1526,39 +1588,32 @@
 
         // ==================== 初始化筛选器 ====================
         function initAllFilters() {
-            // 卡池
             const sc = document.getElementById('statusMultiContainer');
             sc.innerHTML = STATIC_STATUSES.map(s =>
                 `<div class="filter-chip" data-filter="status" data-val="${s.val}">${s.label}</div>`
             ).join('');
 
-            // 阵营
             const fc = document.getElementById('factionMultiContainer');
             fc.innerHTML = STATIC_FACTIONS.map(f =>
                 `<div class="filter-chip" data-filter="faction" data-val="${f}"${chipColorStyle(factionColor[f])}><img src="${f}.svg" onerror="this.style.display='none'"> ${factionNames[f]||f}</div>`
             ).join('');
 
-            // 类型
             const tc = document.getElementById('typeMultiContainer');
             tc.innerHTML = STATIC_TYPES.map(t =>
                 `<div class="filter-chip" data-filter="type" data-val="${t}"${chipColorStyle(TYPE_COLOR[t])}>${typeMap[t]||t}</div>`
             ).join('');
 
-            // 花费
             const cc = document.getElementById('costMultiContainer');
             cc.innerHTML = STATIC_COSTS.map(c =>
                 `<div class="filter-chip" data-filter="cost" data-val="${c}">${c==='7+'?'7K+':c+'K'}</div>`
             ).join('');
 
-            // 稀有度
             const rc = document.getElementById('rarityMultiContainer');
             rc.innerHTML = STATIC_RARITIES.map(r =>
                 `<div class="filter-chip" data-filter="rarity" data-val="${r}"${chipColorStyle(rarityColor[r])}>${rarityNames[r]||r}</div>`
             ).join('');
 
-            // 词条
             initAttrFilter();
-            // 扩展包
             initSetFilter();
         }
 
@@ -1585,7 +1640,6 @@
         function bindFilterEvents() {
             const searchInput = document.getElementById('searchInput');
 
-            // 搜索输入
             searchInput.addEventListener('input', () => {
                 updateSearchSuggest();
                 applyFilters();
@@ -1597,13 +1651,11 @@
                 }
             });
 
-            // 区分大小写
             document.getElementById('strictSearch').addEventListener('change', function() {
                 strictSearch = this.checked;
                 applyFilters();
             });
 
-            // 搜索说明折叠
             const helpToggle = document.getElementById('searchHelpToggle');
             const helpBody = document.getElementById('searchHelpBody');
             const helpArrow = document.getElementById('searchHelpArrow');
@@ -1612,13 +1664,11 @@
                 helpArrow.textContent = open ? '▼' : '▶';
             });
 
-            // 数值输入
             ['attackExact', 'defenseExact', 'opExact'].forEach(id => {
                 const el = document.getElementById(id);
                 el.addEventListener('input', applyFilters);
             });
 
-            // 重置按钮
             document.querySelectorAll('.reset-chip').forEach(reset => {
                 reset.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1647,13 +1697,11 @@
                 });
             });
 
-            // 反选 / 不包含按钮
             document.querySelectorAll('.invert-chip').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const t = btn.dataset.filterType;
                     if (t === 'attribute') {
-                        // 词条：不包含开关
                         attrInvert = !attrInvert;
                         btn.classList.toggle('active', attrInvert);
                         applyFilters();
@@ -1680,7 +1728,6 @@
                 });
             });
 
-            // 折叠切换
             document.querySelectorAll('.collapse-toggle').forEach(toggle => {
                 toggle.addEventListener('click', function(e) {
                     if (e.target.closest('.reset-chip') || e.target.closest('.invert-chip')) return;
@@ -1694,7 +1741,6 @@
                 });
             });
 
-            // 事件委托：filter-chip 点击
             document.querySelector('.filter-panel').addEventListener('click', function(e) {
                 const chip = e.target.closest('.filter-chip');
                 if (!chip) return;
@@ -1702,7 +1748,6 @@
                 const val = chip.dataset.val;
                 if (!type || !val) return;
 
-                // 无词条
                 if (type === 'whiteboard') {
                     whiteboardMode = !whiteboardMode;
                     chip.classList.toggle('active');
@@ -1736,7 +1781,6 @@
                 applyFilters();
             });
 
-            // 点击空白关闭搜索下拉
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.search-wrapper')) {
                     document.getElementById('searchSuggest').classList.remove('show');
@@ -1878,23 +1922,29 @@
         function filterCardsLogic() {
             let result = [...allCards];
 
-            // 搜索
             const query = document.getElementById('searchInput').value;
-            if (query.trim()) {
+            const hasQuery = query.trim().length > 0;
+            if (hasQuery) {
                 result = result.filter(c => searchCardMatch(c, query, strictSearch));
             }
 
-            // 词条
+            // 记录展示语言
+            cardDisplayLang.clear();
+            if (hasQuery) {
+                for (const c of result) {
+                    const lang = getMatchedLang(c, query, strictSearch);
+                    if (lang) cardDisplayLang.set(c.cardId, lang);
+                }
+            }
+
             if (whiteboardMode) {
                 if (attrInvert) {
-                    // 补集：有词条
                     result = result.filter(c => getRealAttrs(c).length > 0);
                 } else {
                     result = result.filter(c => getRealAttrs(c).length === 0);
                 }
             } else if (selectedFilters.attributes.size) {
                 if (attrInvert) {
-                    // 不包含任一所选词条
                     result = result.filter(c => {
                         const cardAttrs = c.attributes || [];
                         return ![...selectedFilters.attributes].some(a => cardAttrs.includes(a));
@@ -1945,7 +1995,6 @@
                 });
             }
 
-            // 身材
             const selTypes = [...selectedFilters.types];
             const onlyUnits = selTypes.length > 0 && selTypes.every(t => unitTypes.includes(t));
             const statsArea = document.getElementById('statsArea');
@@ -1972,6 +2021,17 @@
         }
 
         // ==================== 渲染 ====================
+        function getDisplayLang(card) {
+            return cardDisplayLang.get(card.cardId) || 'zh-Hans';
+        }
+
+        function getDisplayTitle(card) {
+            const lang = getDisplayLang(card);
+            if (card.titleMap && card.titleMap[lang]) return card.titleMap[lang];
+            if (lang === 'zh-Hans') return card.titleZh;
+            return card.titleZh;
+        }
+
         function renderCards() {
             const start = (currentPage - 1) * PAGE_SIZE;
             const pageCards = filteredCards.slice(start, start + PAGE_SIZE);
@@ -1982,12 +2042,14 @@
             }
             container.innerHTML = pageCards.map((card) => {
                 const globalIdx = filteredCards.indexOf(card);
-                const imgUrl = getCardImageUrl(card.image, "zh-Hans", DEFAULT_VERSION, 20);
+                const lang = getDisplayLang(card);
+                const imgUrl = getCardImageUrl(card.image, lang, DEFAULT_VERSION, 20);
+                const title = getDisplayTitle(card);
                 const reserveMark = card.reserved ? '<i class="reserve-icon-sm"></i>' : '';
                 const borderColor = factionColor[card.faction] || '#6b6e5c';
                 return `<div class="card-item" data-index="${globalIdx}" style="border-color: ${borderColor};">
-                            <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${card.titleZh}"></div>
-                            <div class="card-info"><div class="card-name"><span>${card.titleZh}</span>${reserveMark}</div></div>
+                            <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${title}"></div>
+                            <div class="card-info"><div class="card-name"><span>${title}</span>${reserveMark}</div></div>
                         </div>`;
             }).join('');
 
@@ -2030,7 +2092,8 @@
             const card = filteredCards[index];
             if (!card) return;
             currentModalCard = card;
-            currentModalLang = "zh-Hans";
+            // 打开时用命中语言（若有），否则简中
+            currentModalLang = cardDisplayLang.get(card.cardId) || 'zh-Hans';
             currentModalVersion = DEFAULT_VERSION;
             updateModalContentAndImage();
             buildModalVersionSelect();
@@ -2136,7 +2199,6 @@
             const cardId = card.cardId;
             const related = [];
 
-            // 生成
             if (card.canCreate && card.canCreate.length) {
                 for (let childId of card.canCreate) {
                     const child = cardIndex[childId];
@@ -2144,14 +2206,12 @@
                 }
             }
 
-            // 上级
             const parents = parentOfMap[cardId] || [];
             for (let parentId of parents) {
                 const parent = cardIndex[parentId];
                 if (parent) related.push({ card: parent, relation: '上级' });
             }
 
-            // 老兵关系
             if (veteranMap[cardId]) {
                 const vetId = veteranMap[cardId];
                 const vetCard = cardIndex[vetId];
@@ -2163,7 +2223,6 @@
                 if (origCard) related.push({ card: origCard, relation: '原版' });
             }
 
-            // 去重
             const seen = new Set();
             const uniqueRelated = [];
             for (let item of related) {
@@ -2179,7 +2238,6 @@
                 return;
             }
 
-            // 按 relation 分组
             const groups = {};
             for (let item of uniqueRelated) {
                 if (!groups[item.relation]) groups[item.relation] = [];
@@ -2192,12 +2250,14 @@
                 if (groups[rel] && groups[rel].length) {
                     html += `<div class="related-group"><div class="related-group-title">${rel}</div><div class="related-grid">`;
                     for (let c of groups[rel]) {
-                        const imgUrl = getCardImageUrl(c.image, currentModalLang, currentModalVersion, 20);
+                        const lang = getDisplayLang(c);
+                        const imgUrl = getCardImageUrl(c.image, lang, currentModalVersion, 20);
                         const borderColor = factionColor[c.faction] || '#6b6e5c';
                         const reserveMark = c.reserved ? '<i class="reserve-icon-sm"></i>' : '';
+                        const title = (c.titleMap && c.titleMap[lang]) ? c.titleMap[lang] : c.titleZh;
                         html += `<div class="related-card-item" data-cardid="${c.cardId}" style="border-color: ${borderColor};">
-                                    <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${c.titleZh}"></div>
-                                    <div class="card-info"><div class="card-name"><span>${c.titleZh}</span>${reserveMark}</div></div>
+                                    <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${title}"></div>
+                                    <div class="card-info"><div class="card-name"><span>${title}</span>${reserveMark}</div></div>
                                 </div>`;
                     }
                     html += `</div></div>`;
@@ -2207,7 +2267,6 @@
             section.classList.add('visible');
             container.innerHTML = html;
 
-            // 事件绑定
             container.querySelectorAll('.related-card-item').forEach(el => {
                 el.addEventListener('click', () => {
                     const cid = el.dataset.cardid;
@@ -2218,7 +2277,7 @@
                             openModal(idx);
                         } else {
                             currentModalCard = targetCard;
-                            currentModalLang = "zh-Hans";
+                            currentModalLang = cardDisplayLang.get(targetCard.cardId) || 'zh-Hans';
                             currentModalVersion = DEFAULT_VERSION;
                             updateModalContentAndImage();
                             buildModalVersionSelect();
