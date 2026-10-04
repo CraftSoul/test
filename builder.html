@@ -2065,6 +2065,7 @@ async function generateKapiPreview(setStatus,previewDiv){
   const spacingX=parseInt(document.getElementById('kapiSpacingX').value)||0;
   const spacingY=parseInt(document.getElementById('kapiSpacingY').value)||0;
   const extraStats=document.getElementById('kapiStatsChart').checked;
+  const foldEnabled=document.getElementById('foldToggle').checked;
 
   const cols=parseInt(document.getElementById('imgCols').value)||10;
   const scaleFactor=Math.max(25,Math.min(100,scale))/100;
@@ -2155,7 +2156,7 @@ async function generateKapiPreview(setStatus,previewDiv){
     statsChartToggle:effectiveExtraStats,
     lang:document.getElementById('imgLang').value,
     bgColor:getBgColor(),
-    foldEnabled:document.getElementById('foldToggle').checked,
+    foldEnabled,
     cardOverrides
   };
 
