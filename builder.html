@@ -427,7 +427,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                     </div>
                 </div>
 
-                <!-- 卡池（多选） -->
+                <!-- 卡池 -->
                 <div class="filter-group">
                     <div class="filter-group-title collapse-toggle" data-target="statusBody">
                         <span class="fg-title-text">⚙️ 卡池</span>
@@ -456,7 +456,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
             </div>
 
             <div class="upload-bar" id="uploadBar" style="display:none;margin:.5rem 0 1rem;">
-                <button class="import-btn" id="uploadCardBtn" style="display:block;width:100%;padding:.7rem 1.8rem;font-size:.9rem;">📤 上传卡牌（也可直接拖拽图片到页面）</button>
+                <button class="import-btn" id="uploadCardBtn" style="display:block;width:100%;padding:.7rem 1.8rem;font-size:.9rem;">📤 点击或拖拽图片上传卡牌</button>
             </div>
 
             <div id="cardContainer" class="card-grid">正在寻找敌人...</div>
@@ -540,7 +540,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                     <div class="switch-item-input" id="headquarterInputDiv">
                         <input type="text" id="headquarterNameInput" placeholder="总部英文名 (例: MOSCOW)">
                         <div class="mini-row">
-                            <input type="text" id="headquarterUrlInput" placeholder="或：图片 URL">
+                            <input type="text" id="headquarterUrlInput" placeholder="通过 URL 上传">
                             <button class="mini-btn" id="headquarterUrlApply">应用</button>
                         </div>
                         <div class="mini-row">
@@ -589,12 +589,12 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                     <div class="gen-control"><label>横间距 px</label><input type="number" id="imgSpacingX" value="0" min="-500" max="500" step="1"></div>
                     <div class="gen-control"><label>纵间距 px</label><input type="number" id="imgSpacingY" value="0" min="-500" max="500" step="1"></div>
                 </div>
-                <div style="font-size:.68rem;color:#9c9068;line-height:1.7;">※ 画质仅影响网络图片请求的压缩率；比例影响卡片与画布尺寸；间距为负时卡片可能重叠。</div>
+                <div style="font-size:.68rem;color:#9c9068;line-height:1.7;">※ 画质仅影响网络图片请求的压缩率；比例影响卡片与画布尺寸；间距可为负。</div>
             </div>
 
             <div class="tab-panel" data-panel="kapi" style="display:none;">
                 <div class="section-label" style="margin-top:12px;">⚡ KAPI 参数</div>
-                <div class="kapi-note">KAPI 模式使用官方 API 渲染图片。高级参数（版本 / 花费 / 星标）会通过 <code>cardOverrides</code> 发送。</div>
+                <div class="kapi-note">使用 <a href="https://github.com/CraftSoul/kapi" target="_blank" rel="noopener">KAPI</a> 直接渲染 AVIF 图片。</div>
                 <div id="kapiCustomNotice" class="kapi-note warn" style="display:none;"></div>
                 <div class="gen-controls">
                     <div class="gen-control"><label>比例 (25% - 100%)</label><div class="range-row"><input type="range" id="kapiScale" min="25" max="100" value="50"><input type="number" id="kapiScaleNum" min="25" max="100" value="50"></div></div>
@@ -611,7 +611,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
             <div class="tab-panel" data-panel="pdf" style="display:none;">
                 <div class="section-label" style="margin-top:12px;">🖨️ 打印 PDF</div>
                 <div class="print-notice">
-                    <div>· <b>总部、语言、版本</b>跟随「基础 / 高级」中的设置（不打印统计卡与二维码卡）</div>
+                    <div>· 不打印统计卡与二维码卡</div>
                     <div>· 老兵、衍生卡等生成物需 <b>添加至卡组</b> 一同打印</div>
                     <div>· 异画、卡背可前往 <a href="https://1939.kardsdecker.com/" target="_blank" rel="noopener">KARDS DECKER</a> 下载</div>
                 </div>
@@ -1842,7 +1842,7 @@ function updateControlsDisabledState(){
   if(notice){
     if(disableInKapi){
       notice.style.display='block';
-      notice.textContent='⚠️ 检测到自定义卡牌：KAPI 请求将忽略「统计卡」「二维码卡」与「额外统计图」（控件已灰化），自定义卡牌会在返回图片上叠加绘制。';
+      notice.textContent='⚠️ 检测到自定义卡牌：KAPI 请求将忽略「统计卡」「二维码卡」与「额外统计图」，自定义卡牌会在返回图片上叠加绘制。';
     }else{
       notice.style.display='none';
     }
@@ -2075,8 +2075,8 @@ async function generateKapiPreview(setStatus,previewDiv){
       const row=Math.floor(i/cols),col=i%cols;
       const hasRight=(col<cols-1)&&((row*cols+col+1)<totalSlots);
       const hasDown=((row+1)*cols+col)<totalSlots;
-      if(spacingX<0&&hasRight) throw new Error(`自定义卡位置 ${i} 会被右侧卡牌覆盖（横间距为负），请调整间距或减少卡牌`);
-      if(spacingY<0&&hasDown) throw new Error(`自定义卡位置 ${i} 会被下方卡牌覆盖（纵间距为负），请调整间距或减少卡牌`);
+      if(spacingX<0&&hasRight) throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或减少卡牌`);
+      if(spacingY<0&&hasDown) throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或减少卡牌`);
     }
   }
 
