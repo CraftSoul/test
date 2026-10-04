@@ -2040,88 +2040,32 @@ async function generateKapiPreview(setStatus,previewDiv){
 
   const hasCustomOrNoImport=allSlots.some(it=>it.card.isCustom||!it.card.importId);
 
-  const codeMap=new Map();
-  for(const it of allSlots){
-    const c=it.card;
-    if(!c.isCustom&&c.importId) codeMap.set(c.importId,(codeMap.get(c.importId)||0)+1);
-  }
-  const regions=["","","",""];
-  for(const [iid,total] of codeMap.entries()){
-    let r=total%4,q=Math.floor(total/4);
-    if(r===0){for(let i=0;i<q;i++)regions[3]+=iid;}
-    else{regions[r-1]+=iid;for(let i=0;i<q;i++)regions[3]+=iid;}
-  }
-  const deckCode=`%%${getNationCode(mainNation)}${getNationCode(allyNation)}|${regions[0]};${regions[1]};${regions[2]};${regions[3]}`;
-
-  const emptySlots=[];
-  let nonCustomIdx=0;
-  for(let i=0;i<allSlots.length;i++){
-    const c=allSlots[i].card;
-    if(c.isCustom||!c.importId){emptySlots.push(nonCustomIdx);}
-    else nonCustomIdx++;
-  }
-
   const scale=parseInt(document.getElementById('kapiScale').value)||50;
   const spacingX=parseInt(document.getElementById('kapiSpacingX').value)||0;
   const spacingY=parseInt(document.getElementById('kapiSpacingY').value)||0;
   const extraStats=document.getElementById('kapiStatsChart').checked;
   const foldEnabled=document.getElementById('foldToggle').checked;
-
   const cols=parseInt(document.getElementById('imgCols').value)||10;
-  const scaleFactor=Math.max(25,Math.min(100,scale))/100;
-  const cardW=Math.floor(500*scaleFactor);
-  const cardH=Math.floor(702*scaleFactor);
 
-  if(spacingX<0||spacingY<0){
-    const totalSlots=allSlots.length;
-    for(let i=0;i<allSlots.length;i++){
-      const c=allSlots[i].card;
-      if(!(c.isCustom||!c.importId)) continue;
-      const row=Math.floor(i/cols),col=i%cols;
-      const xi=col*(cardW+spacingX);
-      const yi=row*(cardH+spacingY);
-
-      if(spacingX<0){
-        for(let cc=col+1;cc<cols;cc++){
-          const j=row*cols+cc;
-          if(j>=totalSlots) break;
-          const nc=allSlots[j].card;
-          if(nc.isCustom||!nc.importId) continue;
-          const xc=cc*(cardW+spacingX);
-          if(xc<xi+cardW && xc+cardW>xi){
-            throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或列数`);
-          }
-        }
-      }
-
-      if(spacingY<0){
-        const yNext=(row+1)*(cardH+spacingY);
-        if(yNext<yi+cardH){
-          if(spacingX>=0){
-            const j=(row+1)*cols+col;
-            if(j<totalSlots){
-              const nc=allSlots[j].card;
-              if(!(nc.isCustom||!nc.importId)){
-                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或列数`);
-              }
-            }
-          }else{
-            for(let cc=0;cc<cols;cc++){
-              const j=(row+1)*cols+cc;
-              if(j>=totalSlots) break;
-              const nc=allSlots[j].card;
-              if(nc.isCustom||!nc.importId) continue;
-              const xc=cc*(cardW+spacingX);
-                if(xc<xi+cardW && xc+cardW>xi){
-                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵横间距均为负），请调整间距或列数`);
-              }
-            }
-          }
-        }
+  // ===== 若启用折叠，先将 allSlots 合并，得到 effectiveSlots（用于空位与绘制）=====
+  let effectiveSlots=allSlots;
+  if(foldEnabled){
+    const merged=new Map();
+    const newList=[];
+    for(const it of allSlots){
+      const key=it.card.cardId;
+      if(merged.has(key)){
+        merged.get(key).count+=1;
+      }else{
+        const entry={card:it.card,version:it.version,count:1};
+        merged.set(key,entry);
+        newList.push(entry);
       }
     }
+    effectiveSlots=newList;
   }
 
+  // ===== 构建 cardOverrides =====
   const cardOverrides={};
   for(const [cid,entry] of deckMap){
     const card=entry.card;
@@ -2134,6 +2078,85 @@ async function generateKapiPreview(setStatus,previewDiv){
     if(cost!==undefined&&cost!==card.cost) ov.cost=cost;
     if(star) ov.star=true;
     if(Object.keys(ov).length>0) cardOverrides[card.cardId]=ov;
+  }
+
+  // ===== 构建卡组代码（仅含非自定义有 importId 的卡）=====
+  const codeMap=new Map();
+  for(const it of effectiveSlots){
+    const c=it.card;
+    if(!c.isCustom&&c.importId){
+      const n=it.count||1;
+      codeMap.set(c.importId,(codeMap.get(c.importId)||0)+n);
+    }
+  }
+  const regions=["","","",""];
+  for(const [iid,total] of codeMap.entries()){
+    let r=total%4,q=Math.floor(total/4);
+    if(r===0){for(let i=0;i<q;i++)regions[3]+=iid;}
+    else{regions[r-1]+=iid;for(let i=0;i<q;i++)regions[3]+=iid;}
+  }
+  const deckCode=`%%${getNationCode(mainNation)}${getNationCode(allyNation)}|${regions[0]};${regions[1]};${regions[2]};${regions[3]}`;
+
+  // ===== 基于 effectiveSlots 计算 emptySlots（相对 KAPI 折叠后列表的位置）=====
+  const emptySlots=[];
+  let nonCustomIdx=0;
+  for(const it of effectiveSlots){
+    const c=it.card;
+    if(c.isCustom||!c.importId){emptySlots.push(nonCustomIdx);}
+    else nonCustomIdx++;
+  }
+
+  // ===== 负间距覆盖检测（基于 effectiveSlots，用坐标判断重叠）=====
+  if(spacingX<0||spacingY<0){
+    const scaleFactorCheck=Math.max(25,Math.min(100,scale))/100;
+    const cardWCheck=Math.floor(500*scaleFactorCheck);
+    const cardHCheck=Math.floor(702*scaleFactorCheck);
+    const totalSlots=effectiveSlots.length;
+    for(let i=0;i<totalSlots;i++){
+      const c=effectiveSlots[i].card;
+      if(!(c.isCustom||!c.importId)) continue;
+      const row=Math.floor(i/cols),col=i%cols;
+      const xi=col*(cardWCheck+spacingX);
+      const yi=row*(cardHCheck+spacingY);
+
+      if(spacingX<0){
+        for(let cc=col+1;cc<cols;cc++){
+          const j=row*cols+cc;
+          if(j>=totalSlots) break;
+          const nc=effectiveSlots[j].card;
+          if(nc.isCustom||!nc.importId) continue;
+          const xc=cc*(cardWCheck+spacingX);
+          if(xc<xi+cardWCheck && xc+cardWCheck>xi){
+            throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或列数`);
+          }
+        }
+      }
+      if(spacingY<0){
+        const yNext=(row+1)*(cardHCheck+spacingY);
+        if(yNext<yi+cardHCheck){
+          if(spacingX>=0){
+            const j=(row+1)*cols+col;
+            if(j<totalSlots){
+              const nc=effectiveSlots[j].card;
+              if(!(nc.isCustom||!nc.importId)){
+                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或列数`);
+              }
+            }
+          }else{
+            for(let cc=0;cc<cols;cc++){
+              const j=(row+1)*cols+cc;
+              if(j>=totalSlots) break;
+              const nc=effectiveSlots[j].card;
+              if(nc.isCustom||!nc.importId) continue;
+              const xc=cc*(cardWCheck+spacingX);
+              if(xc<xi+cardWCheck && xc+cardWCheck>xi){
+                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵横间距均为负），请调整间距或列数`);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   const userWantsStats=document.getElementById('statsCardToggle').checked;
@@ -2177,6 +2200,8 @@ async function generateKapiPreview(setStatus,previewDiv){
   kapiStatsChartImage=data.statsChart||null;
 
   let finalImage=mainImage;
+
+  // ===== 在返回图片上叠加自定义卡牌 =====
   if(hasCustomOrNoImport){
     setStatus('⏳ 正在叠加自定义卡牌...');
     const baseImg=await loadImg(mainImage,false);
@@ -2187,28 +2212,72 @@ async function generateKapiPreview(setStatus,previewDiv){
     canvas.width=baseImg.width;canvas.height=baseImg.height;
     const ctx=canvas.getContext('2d');
     ctx.drawImage(baseImg,0,0);
-    const nonCustomList=allSlots.filter(it=>!it.card.isCustom&&it.card.importId);
-    const sortedSlots=[...emptySlots].sort((a,b)=>b-a);
-    for(const idx of sortedSlots){if(idx>=0&&idx<=nonCustomList.length) nonCustomList.splice(idx,0,null);}
-    const customList=allSlots.filter(it=>it.card.isCustom||!it.card.importId);
-    let ci=0;
-    for(let i=0;i<nonCustomList.length;i++){
-      const item=nonCustomList[i];
-      if(item!==null) continue;
-      const target=customList[ci++];if(!target) continue;
-      const c=target.card;
-      const row=Math.floor(i/cols),col=i%cols;
-      const x=col*(cardW+spacingX),y=row*(cardH+spacingY);
+
+    // 固定尺寸标签（与 KAPI 服务端一致，不随缩放）
+    const drawTag=(text,tx,ty,color,bg='rgba(0,0,0,0.85)')=>{
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.8)';
+      ctx.shadowBlur=4;
+      ctx.font='bold 28px "Segoe UI"';
+      const metrics=ctx.measureText(text);
+      const pad=12;
+      const rectW=metrics.width+pad*2;
+      const rectH=60;
+      const arrowSize=14;
+      ctx.beginPath();
+      ctx.moveTo(tx+8,ty);
+      ctx.lineTo(tx+rectW,ty);
+      ctx.lineTo(tx+rectW+arrowSize,ty+rectH/2);
+      ctx.lineTo(tx+rectW,ty+rectH);
+      ctx.lineTo(tx+8,ty+rectH);
+      ctx.quadraticCurveTo(tx,ty+rectH,tx,ty+rectH-8);
+      ctx.lineTo(tx,ty+8);
+      ctx.quadraticCurveTo(tx,ty,tx+8,ty);
+      ctx.closePath();
+      ctx.fillStyle=bg;
+      ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.fillStyle=color;
+      ctx.textAlign='left';
+      ctx.textBaseline='middle';
+      ctx.fillText(text,tx+pad,ty+rectH/2);
+      ctx.restore();
+    };
+
+    // 遍历 effectiveSlots，在自定义卡对应 KAPI 输出位置绘制
+    let kapiSlotPos=0;
+    for(const slot of effectiveSlots){
+      const c=slot.card;
+      if(!(c.isCustom||!c.importId)){
+        kapiSlotPos++;
+        continue;
+      }
+      const row=Math.floor(kapiSlotPos/cols);
+      const col=kapiSlotPos%cols;
+      const x=col*(cardW+spacingX);
+      const y=row*(cardH+spacingY);
+
       let img;
       if(c.imageData){img=await loadImg(c.imageData,false);}
       else{
         const lang=document.getElementById('imgLang').value;
-        const ver=target.version||DEFAULT_VERSION;
+        const ver=slot.version||DEFAULT_VERSION;
         img=await loadImg(getCardImageUrl(c.image,lang,ver,100),true);
       }
+
       ctx.save();
       const r=Math.max(2,Math.floor(15*scaleFactor));
-      ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+cardW-r,y);ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+r);ctx.lineTo(x+cardW,y+cardH-r);ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-r,y+cardH);ctx.lineTo(x+r,y+cardH);ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.clip();
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);ctx.lineTo(x+cardW-r,y);
+      ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+r);
+      ctx.lineTo(x+cardW,y+cardH-r);
+      ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-r,y+cardH);
+      ctx.lineTo(x+r,y+cardH);
+      ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-r);
+      ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y);
+      ctx.closePath();
+      ctx.clip();
       const fit=c.imageFit||'cover';
       const iA=img.width/img.height,cA=cardW/cardH;
       let sx=0,sy=0,sw=img.width,sh=img.height;
@@ -2216,50 +2285,18 @@ async function generateKapiPreview(setStatus,previewDiv){
       else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
       ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
       ctx.restore();
-      //自定义卡牌标签
-      const drawTag=(text,tx,ty,color,bg='rgba(0,0,0,0.85)')=>{
-        ctx.save();
-        ctx.shadowColor='rgba(0,0,0,0.8)';
-        ctx.shadowBlur=4;
-        ctx.font=`bold ${Math.max(14,28*scaleFactor)}px "Segoe UI"`;
-        const metrics=ctx.measureText(text);
-        const pad=Math.max(6,12*scaleFactor);
-        const rectW=metrics.width+pad*2;
-        const rectH=Math.max(28,60*scaleFactor);
-        const arrowSize=Math.max(7,14*scaleFactor);
-        ctx.beginPath();
-        ctx.moveTo(tx+8,ty);
-        ctx.lineTo(tx+rectW,ty);
-        ctx.lineTo(tx+rectW+arrowSize,ty+rectH/2);
-        ctx.lineTo(tx+rectW,ty+rectH);
-        ctx.lineTo(tx+8,ty+rectH);
-        ctx.quadraticCurveTo(tx,ty+rectH,tx,ty+rectH-8);
-        ctx.lineTo(tx,ty+8);
-        ctx.quadraticCurveTo(tx,ty,tx+8,ty);
-        ctx.closePath();
-        ctx.fillStyle=bg;
-        ctx.fill();
-        ctx.shadowBlur=0;
-        ctx.fillStyle=color;
-        ctx.textAlign='left';
-        ctx.textBaseline='middle';
-        ctx.fillText(text,tx+pad,ty+rectH/2);
-        ctx.restore();
-      };
-      if(foldEnabled){
-        const totalCount=deckMap.get(c.id)?.count||1;
-        if(totalCount>1){
-          drawTag('×'+(totalCount>99?'99+':totalCount),x,y+99*scaleFactor,'#fff');
-        }
+
+      const count=slot.count||1;
+      if(foldEnabled&&count>1){
+        drawTag('×'+(count>99?'99+':count),x,y+99*scaleFactor,'#fff');
       }
       if(cardStarMap.get(c.cardId)){
         let off=0;
-        if(foldEnabled){
-          const totalCount=deckMap.get(c.id)?.count||1;
-          if(totalCount>1) off=64*scaleFactor;
-        }
+        if(foldEnabled&&count>1) off=64;
         drawTag('★',x,y+99*scaleFactor+off,'#ffd700');
       }
+
+      kapiSlotPos++;
     }
     finalImage=canvas.toDataURL('image/png');
   }
