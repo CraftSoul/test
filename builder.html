@@ -2068,30 +2068,50 @@ async function generateKapiPreview(setStatus,previewDiv){
 
   const cols=parseInt(document.getElementById('imgCols').value)||10;
   if(spacingX<0||spacingY<0){
-    const scaleFactor=Math.max(25,Math.min(100,scale))/100;
-    const cardW=Math.floor(500*scaleFactor);
-    const cardH=Math.floor(702*scaleFactor);
-    const drawnPositions=[];
-    for(let j=0;j<allSlots.length;j++){
-      const cj=allSlots[j].card;
-      if(cj.isCustom||!cj.importId) continue;
-      const rj=Math.floor(j/cols), cjCol=j%cols;
-      drawnPositions.push({
-        idx:j,
-        x:cjCol*(cardW+spacingX),
-        y:rj*(cardH+spacingY)
-      });
-    }
-
+    const totalSlots=allSlots.length;
     for(let i=0;i<allSlots.length;i++){
       const c=allSlots[i].card;
       if(!(c.isCustom||!c.importId)) continue;
-      const ri=Math.floor(i/cols), ci=i%cols;
-      const xi=ci*(cardW+spacingX);
-      const yi=ri*(cardH+spacingY);
-      for(const p of drawnPositions){
-        if(Math.abs(xi-p.x)<cardW && Math.abs(yi-p.y)<cardH){
-          throw new Error(`自定义卡位置 ${i+1} 会被位置 ${p.idx+1} 的卡牌覆盖（间距为负），请调整间距或列数`);
+      const row=Math.floor(i/cols),col=i%cols;
+      const xi=col*(cardW+spacingX);
+      const yi=row*(cardH+spacingY);
+
+      if(spacingX<0){
+        for(let cc=col+1;cc<cols;cc++){
+          const j=row*cols+cc;
+          if(j>=totalSlots) break;
+          const nc=allSlots[j].card;
+          if(nc.isCustom||!nc.importId) continue;
+          const xc=cc*(cardW+spacingX);
+          if(xc<xi+cardW && xc+cardW>xi){
+            throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或列数`);
+          }
+        }
+      }
+
+      if(spacingY<0){
+        const yNext=(row+1)*(cardH+spacingY);
+        if(yNext<yi+cardH){
+          if(spacingX>=0){
+            const j=(row+1)*cols+col;
+            if(j<totalSlots){
+              const nc=allSlots[j].card;
+              if(!(nc.isCustom||!nc.importId)){
+                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或列数`);
+              }
+            }
+          }else{
+            for(let cc=0;cc<cols;cc++){
+              const j=(row+1)*cols+cc;
+              if(j>=totalSlots) break;
+              const nc=allSlots[j].card;
+              if(nc.isCustom||!nc.importId) continue;
+              const xc=cc*(cardW+spacingX);
+                if(xc<xi+cardW && xc+cardW>xi){
+                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵横间距均为负），请调整间距或列数`);
+              }
+            }
+          }
         }
       }
     }
