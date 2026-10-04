@@ -2215,6 +2215,50 @@ async function generateKapiPreview(setStatus,previewDiv){
       else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
       ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
       ctx.restore();
+      //自定义卡牌标签
+      const drawTag=(text,tx,ty,color,bg='rgba(0,0,0,0.85)')=>{
+        ctx.save();
+        ctx.shadowColor='rgba(0,0,0,0.8)';
+        ctx.shadowBlur=4;
+        ctx.font=`bold ${Math.max(14,28*scaleFactor)}px "Segoe UI"`;
+        const metrics=ctx.measureText(text);
+        const pad=Math.max(6,12*scaleFactor);
+        const rectW=metrics.width+pad*2;
+        const rectH=Math.max(28,60*scaleFactor);
+        const arrowSize=Math.max(7,14*scaleFactor);
+        ctx.beginPath();
+        ctx.moveTo(tx+8,ty);
+        ctx.lineTo(tx+rectW,ty);
+        ctx.lineTo(tx+rectW+arrowSize,ty+rectH/2);
+        ctx.lineTo(tx+rectW,ty+rectH);
+        ctx.lineTo(tx+8,ty+rectH);
+        ctx.quadraticCurveTo(tx,ty+rectH,tx,ty+rectH-8);
+        ctx.lineTo(tx,ty+8);
+        ctx.quadraticCurveTo(tx,ty,tx+8,ty);
+        ctx.closePath();
+        ctx.fillStyle=bg;
+        ctx.fill();
+        ctx.shadowBlur=0;
+        ctx.fillStyle=color;
+        ctx.textAlign='left';
+        ctx.textBaseline='middle';
+        ctx.fillText(text,tx+pad,ty+rectH/2);
+        ctx.restore();
+      };
+      if(foldEnabled){
+        const totalCount=deckMap.get(c.id)?.count||1;
+        if(totalCount>1){
+          drawTag('×'+(totalCount>99?'99+':totalCount),x,y+99*scaleFactor,'#fff');
+        }
+      }
+      if(cardStarMap.get(c.cardId)){
+        let off=0;
+        if(foldEnabled){
+          const totalCount=deckMap.get(c.id)?.count||1;
+          if(totalCount>1) off=64*scaleFactor;
+        }
+        drawTag('★',x,y+99*scaleFactor+off,'#ffd700');
+      }
     }
     finalImage=canvas.toDataURL('image/png');
   }
