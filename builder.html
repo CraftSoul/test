@@ -594,7 +594,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 
             <div class="tab-panel" data-panel="kapi" style="display:none;">
                 <div class="section-label" style="margin-top:12px;">⚡ KAPI 参数</div>
-                <div class="kapi-note">使用 <a href="https://github.com/CraftSoul/kapi" target="_blank" rel="noopener">KAPI</a> 直接渲染 AVIF 图片。</div>
+                <div class="kapi-note">使用 <a href="https://github.com/CraftSoul/kapi" target="_blank" rel="noopener">KAPI</a> 直接渲染 AVIF 图片，不经过 Weserv 代理。</div>
                 <div id="kapiCustomNotice" class="kapi-note warn" style="display:none;"></div>
                 <div class="gen-controls">
                     <div class="gen-control"><label>比例 (25% - 100%)</label><div class="range-row"><input type="range" id="kapiScale" min="25" max="100" value="50"><input type="number" id="kapiScaleNum" min="25" max="100" value="50"></div></div>
@@ -2068,15 +2068,32 @@ async function generateKapiPreview(setStatus,previewDiv){
 
   const cols=parseInt(document.getElementById('imgCols').value)||10;
   if(spacingX<0||spacingY<0){
-    const totalSlots=allSlots.length;
+    const scaleFactor=Math.max(25,Math.min(100,scale))/100;
+    const cardW=Math.floor(500*scaleFactor);
+    const cardH=Math.floor(702*scaleFactor);
+    const drawnPositions=[];
+    for(let j=0;j<allSlots.length;j++){
+      const cj=allSlots[j].card;
+      if(cj.isCustom||!cj.importId) continue;
+      const rj=Math.floor(j/cols), cjCol=j%cols;
+      drawnPositions.push({
+        idx:j,
+        x:cjCol*(cardW+spacingX),
+        y:rj*(cardH+spacingY)
+      });
+    }
+
     for(let i=0;i<allSlots.length;i++){
       const c=allSlots[i].card;
       if(!(c.isCustom||!c.importId)) continue;
-      const row=Math.floor(i/cols),col=i%cols;
-      const hasRight=(col<cols-1)&&((row*cols+col+1)<totalSlots);
-      const hasDown=((row+1)*cols+col)<totalSlots;
-      if(spacingX<0&&hasRight) throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或减少卡牌`);
-      if(spacingY<0&&hasDown) throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或减少卡牌`);
+      const ri=Math.floor(i/cols), ci=i%cols;
+      const xi=ci*(cardW+spacingX);
+      const yi=ri*(cardH+spacingY);
+      for(const p of drawnPositions){
+        if(Math.abs(xi-p.x)<cardW && Math.abs(yi-p.y)<cardH){
+          throw new Error(`自定义卡位置 ${i+1} 会被位置 ${p.idx+1} 的卡牌覆盖（间距为负），请调整间距或列数`);
+        }
+      }
     }
   }
 
