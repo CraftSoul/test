@@ -2067,6 +2067,10 @@ async function generateKapiPreview(setStatus,previewDiv){
   const extraStats=document.getElementById('kapiStatsChart').checked;
 
   const cols=parseInt(document.getElementById('imgCols').value)||10;
+  const scaleFactor=Math.max(25,Math.min(100,scale))/100;
+  const cardW=Math.floor(500*scaleFactor);
+  const cardH=Math.floor(702*scaleFactor);
+
   if(spacingX<0||spacingY<0){
     const totalSlots=allSlots.length;
     for(let i=0;i<allSlots.length;i++){
