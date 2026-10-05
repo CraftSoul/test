@@ -11,6 +11,10 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: hidden;
+        }
+
         body {
             min-height: 100vh;
             background: #2b2b1f;
@@ -188,7 +192,6 @@
             transform: translateY(0);
         }
 
-        /* 文字逐条浮现 */
         .block-text h2,
         .block-text .block-content > * {
             opacity: 0;
@@ -211,14 +214,10 @@
         .block-text .block-content > *:nth-child(5) { transition-delay: .50s; }
         .block-text .block-content > *:nth-child(6) { transition-delay: .58s; }
 
-        /* 图片入场 */
-        .block-image {
-            transition: opacity .8s ease, transform .8s cubic-bezier(.22, .9, .3, 1);
-        }
-
         .content-block .block-image {
             opacity: 0;
             transform: translateY(22px) scale(.97);
+            transition: opacity .8s ease, transform .8s cubic-bezier(.22, .9, .3, 1);
         }
 
         .content-block.in-view .block-image {
@@ -393,6 +392,7 @@
             margin: 14px auto 0;
             width: 100%;
             max-width: min(380px, 100%);
+            min-width: 0;
             overflow: hidden;
             -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
             mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
@@ -402,11 +402,6 @@
             display: flex;
             width: max-content;
             animation: langScroll 34s linear infinite;
-        }
-
-        .lang-scroll:hover .lang-track,
-        .lang-scroll:active .lang-track {
-            animation-play-state: paused;
         }
 
         @keyframes langScroll {
@@ -454,7 +449,6 @@
             line-height: 1;
         }
 
-        /* 卡图切换动画 */
         #collectionImg {
             transform-origin: center center;
         }
@@ -507,9 +501,11 @@
         .pack-flip {
             position: relative;
             width: 100%;
-            aspect-ratio: 500 / 702;
+            padding-top: 140.4%; /* 702 / 500 */
             cursor: pointer;
             outline: none;
+            border-radius: 12px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .pack-flip.done {
@@ -517,9 +513,8 @@
         }
 
         .pack-flip-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
+            position: absolute;
+            inset: 0;
             transform-style: preserve-3d;
             transition: transform .5s ease-out;
             border-radius: 12px;
@@ -537,7 +532,28 @@
             background: #2d291b;
         }
 
+        .pack-face.pack-back {
+            background: linear-gradient(135deg, #3a3222, #1e1c16);
+        }
+
+        .pack-face.pack-back::after {
+            content: 'KARDS';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(201, 170, 91, .45);
+            font-weight: 800;
+            letter-spacing: 4px;
+            font-size: 1.15rem;
+            z-index: 0;
+            pointer-events: none;
+        }
+
         .block-image .pack-face img {
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100%;
             max-width: none;
@@ -593,23 +609,6 @@
             visibility: visible;
         }
 
-        /* ============ 友链小卡图 ============ */
-        .friend-thumb {
-            width: 26px;
-            height: auto;
-            border-radius: 3px;
-            border: 1px solid #c7aa60;
-            vertical-align: middle;
-            margin-right: 7px;
-            display: inline-block;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
-            transition: transform .18s ease;
-        }
-
-        .block-text p:hover .friend-thumb {
-            transform: scale(1.12);
-        }
-
         .divider-line {
             margin: 1rem 0 2rem;
             text-align: center;
@@ -658,6 +657,7 @@
             filter: invert(0.95);
         }
 
+        /* ============ 移动端适配 ============ */
         @media (max-width: 780px) {
             .app-container { padding: 12px 16px 24px; }
             .about-section { padding: 0; }
@@ -668,6 +668,12 @@
                 margin-bottom: 2.5rem;
             }
 
+            .content-block .block-image,
+            .content-block .block-text {
+                flex: none;
+                width: 100%;
+            }
+
             .block-image img { max-width: 280px; }
 
             .block-text {
@@ -676,6 +682,8 @@
             }
 
             .block-text h2 { font-size: 1.45rem; }
+
+            .pack-flip-wrap { max-width: 300px; }
 
             .float-link.bili { top: -13px; right: 12px; }
             .float-link.qq { top: -13px; right: 92px; }
@@ -694,6 +702,8 @@
 
             .float-link img { width: 12px; height: 12px; }
             .float-link.qq { right: 84px; }
+
+            .pack-flip-wrap { max-width: 260px; }
         }
 
         /* ----- 中央公告弹窗 ----- */
@@ -983,20 +993,54 @@
             </div>
         </div>
 
-        <!-- block8 友链 -->
-        <div class="content-block text-image" id="block8">
+        <!-- block8-1 友链 · 其一 -->
+        <div class="content-block image-text" id="block8-1">
             <div class="block-image">
-                <a href="https://www.bilibili.com/video/BV1GJ411x7h7" target="_blank" rel="noopener noreferrer">
-                    <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/en-EN/a_few_good_men.avif&q=100" alt="坏人多多" loading="lazy">
-                </a>
+                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="KARDS DECKER" loading="lazy">
             </div>
-            <div class="block-text" data-i18n-block="block8">
+            <div class="block-text" data-i18n-block="block8_1">
                 <h2>👥 友链</h2>
                 <div class="block-content">
-                    <p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt=""><a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a>-KARDS社区工具，智能配卡与深度构筑引擎</p>
-                    <p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt=""><a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a>-综合查询工具&静冈bot的联络站</p>
-                    <p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt=""><a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a>-KARDS Amiya bot作者</p>
-                    <p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt=""><a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a>-QQ社区AI猫娘~</p>
+                    <p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — KARDS社区工具，智能配卡与深度构筑引擎</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- block8-2 友链 · 其二 -->
+        <div class="content-block text-image" id="block8-2">
+            <div class="block-image">
+                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="TrBraz 卡组库" loading="lazy">
+            </div>
+            <div class="block-text" data-i18n-block="block8_2">
+                <h2>👥 友链</h2>
+                <div class="block-content">
+                    <p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a> — 综合查询工具 &amp; 静冈bot的联络站</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- block8-3 友链 · 其三 -->
+        <div class="content-block image-text" id="block8-3">
+            <div class="block-image">
+                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="雷性朗姆酒" loading="lazy">
+            </div>
+            <div class="block-text" data-i18n-block="block8_3">
+                <h2>👥 友链</h2>
+                <div class="block-content">
+                    <p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a> — KARDS Amiya bot作者</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- block8-4 友链 · 其四 -->
+        <div class="content-block text-image" id="block8-4">
+            <div class="block-image">
+                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="蘑菇" loading="lazy">
+            </div>
+            <div class="block-text" data-i18n-block="block8_4">
+                <h2>👥 友链</h2>
+                <div class="block-content">
+                    <p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a> — QQ社区AI猫娘~</p>
                 </div>
             </div>
         </div>
@@ -1049,9 +1093,21 @@
                         title: '🎲 模拟开包',
                         content: `<p>·娱乐性功能，模拟开启卡包</p><p>·添加多个筛选器，取并集作为卡池</p><p>·同样支持上传自定义卡牌</p>`
                     },
-                    block8: {
+                    block8_1: {
                         title: '👥 友链',
-                        content: `<p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt=""><a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a>-KARDS社区工具，智能配卡与深度构筑引擎</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt=""><a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a>-综合查询工具&静冈bot的联络站</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt=""><a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a>-KARDS Amiya bot作者</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt=""><a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a>-QQ社区AI猫娘~</p>`
+                        content: `<p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — KARDS社区工具，智能配卡与深度构筑引擎</p>`
+                    },
+                    block8_2: {
+                        title: '👥 友链',
+                        content: `<p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a> — 综合查询工具 &amp; 静冈bot的联络站</p>`
+                    },
+                    block8_3: {
+                        title: '👥 友链',
+                        content: `<p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a> — KARDS Amiya bot作者</p>`
+                    },
+                    block8_4: {
+                        title: '👥 友链',
+                        content: `<p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a> — QQ社区AI猫娘~</p>`
                     }
                 }
             },
@@ -1092,9 +1148,21 @@
                         title: '🎲 Pack Simulator',
                         content: `<p>· Fun feature: simulate opening packs</p><p>· Add multiple filters, union as card pool</p><p>· Also supports uploading custom cards</p>`
                     },
-                    block8: {
+                    block8_1: {
                         title: '👥 Friendship Links',
-                        content: `<p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt=""><a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> - community deck building & intelligence</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt=""><a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBraz's Deck Library</a> - query tool & <strong>Shizuoka bot</strong> hub</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt=""><a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">Thunder Rum</a> - <strong>KARDS Amiya bot</strong> creator</p><p>·<img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt=""><a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">Mushroom</a> - QQ community AI catgirl~</p>`
+                        content: `<p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — community deck building &amp; intelligence</p>`
+                    },
+                    block8_2: {
+                        title: '👥 Friendship Links',
+                        content: `<p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBraz's Deck Library</a> — query tool &amp; <strong>Shizuoka bot</strong> hub</p>`
+                    },
+                    block8_3: {
+                        title: '👥 Friendship Links',
+                        content: `<p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">Thunder Rum</a> — <strong>KARDS Amiya bot</strong> creator</p>`
+                    },
+                    block8_4: {
+                        title: '👥 Friendship Links',
+                        content: `<p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">Mushroom</a> — QQ community AI catgirl~</p>`
                     }
                 }
             }
@@ -1130,7 +1198,7 @@
             if (e.target === modalOverlay) hideModal();
         });
 
-        /* ================= 语言切换（仅文本区，保留自定义控件） ================= */
+        /* ================= 语言切换（仅文本区） ================= */
         function applyLanguage(lang) {
             const data = langData[lang];
             if (!data) return;
@@ -1286,7 +1354,7 @@
 
                 // 已缓存时也播放动画（onload 不一定触发时兜底）
                 window.setTimeout(finish, 2200);
-            }, 360);
+            }, 400);
         }
 
         langTrack.addEventListener('click', function(e) {
