@@ -346,7 +346,6 @@
             pointer-events: none;
         }
 
-        /* 默认图标反白（B站/QQ/GitHub），KAPI 使用原色 */
         .float-link.bili img,
         .float-link.qq img,
         .float-link.gh img {
@@ -397,7 +396,7 @@
             animation-delay: 2.4s;
         }
 
-        /* ============ 卡牌收藏：语言链 ============ */
+        /* ============ 卡牌收藏：语言链（略微加快） ============ */
         .lang-scroll {
             margin: 14px auto 0;
             width: 100%;
@@ -411,7 +410,7 @@
         .lang-track {
             display: flex;
             width: max-content;
-            animation: langScroll 34s linear infinite;
+            animation: langScroll 24s linear infinite;
         }
 
         @keyframes langScroll {
@@ -500,12 +499,38 @@
             }
         }
 
-        /* ============ 模拟开包：卡背翻转 ============ */
+        /* ============ 模拟开包：3D 舞台 + 卡背翻转 ============ */
+        .pack-stage {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto;
+            perspective: 1400px;
+            perspective-origin: 50% 50%;
+            min-height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .pack-flip-wrap {
             width: 100%;
             max-width: 380px;
             margin: 0 auto;
-            perspective: 1200px;
+            transform-style: preserve-3d;
+            transition: transform 0.55s cubic-bezier(.2, .9, .3, 1.1);
+            will-change: transform;
+        }
+
+        /* 电脑端：初始居中放大，动画结束后平滑归位 */
+        @media (min-width: 781px) {
+            .pack-stage.centered .pack-flip-wrap {
+                transform: translateZ(70px) scale(1.12);
+            }
+
+            .pack-stage.settled .pack-flip-wrap {
+                transform: translateZ(0) scale(1);
+            }
         }
 
         .pack-flip {
@@ -516,6 +541,7 @@
             outline: none;
             border-radius: 12px;
             -webkit-tap-highlight-color: transparent;
+            transform-style: preserve-3d;
         }
 
         .pack-flip.done {
@@ -540,10 +566,12 @@
             border: 1px solid #c7aa60;
             box-shadow: 0 8px 20px rgba(0, 0, 0, .5);
             background: #2d291b;
+            transform-style: preserve-3d;
         }
 
         .pack-face.pack-back {
             background: linear-gradient(135deg, #3a3222, #1e1c16);
+            transform: translateZ(1px);
         }
 
         .pack-face.pack-back::after {
@@ -578,21 +606,24 @@
         }
 
         .pack-face.pack-front {
-            transform: rotateY(180deg);
+            transform: rotateY(180deg) translateZ(1px);
         }
 
+        /* 3D 抬升 */
         .pack-flip.lift .pack-flip-inner {
-            transform: translateY(-45px) scale(1.18);
+            transform: translateY(-45px) translateZ(90px) rotateX(8deg) scale(1.15);
         }
 
+        /* 3D 翻转 */
         .pack-flip.flip .pack-flip-inner {
-            transform: rotateY(-180deg) translateY(-45px) scale(1.18);
+            transform: rotateY(-180deg) translateY(-45px) translateZ(90px) rotateX(8deg) scale(1.15);
             transition: transform 1s cubic-bezier(.4, 0, .2, 1);
         }
 
+        /* 3D 落回 */
         .pack-flip.slam .pack-flip-inner {
-            transform: rotateY(-180deg) translateY(0) scale(1);
-            transition: transform .45s cubic-bezier(.2, .9, .4, 1);
+            transform: rotateY(-180deg) translateY(0) translateZ(0) rotateX(0) scale(1);
+            transition: transform .5s cubic-bezier(.2, .9, .4, 1);
         }
 
         @keyframes packShake {
@@ -640,12 +671,10 @@
             transition: background .2s ease, border-color .2s ease, transform .2s ease;
         }
 
-        /* 奇数项：图左文右（默认） */
         .friend-item:nth-child(odd) {
             flex-direction: row;
         }
 
-        /* 偶数项：图右文左（文图交替） */
         .friend-item:nth-child(even) {
             flex-direction: row-reverse;
         }
@@ -684,7 +713,6 @@
             min-width: 0;
         }
 
-        /* 偶数项文字右对齐，与图右文左呼应 */
         .friend-item:nth-child(even) .friend-info {
             text-align: right;
         }
@@ -781,7 +809,6 @@
 
             .block-text h2 { font-size: 1.45rem; }
 
-            /* 移动端友链保持图文-文图交替 */
             .friend-item,
             .friend-item:nth-child(odd),
             .friend-item:nth-child(even) {
@@ -805,6 +832,7 @@
                 transform: none;
             }
 
+            .pack-stage { min-height: 340px; max-width: 300px; }
             .pack-flip-wrap { max-width: 300px; }
 
             .float-link.bili { top: -13px; right: 12px; }
@@ -825,6 +853,7 @@
             .float-link img { width: 12px; height: 12px; }
             .float-link.qq { right: 84px; }
 
+            .pack-stage { min-height: 300px; max-width: 260px; }
             .pack-flip-wrap { max-width: 260px; }
 
             .friend-item .friend-thumb {
@@ -1005,7 +1034,6 @@
                     <p>可通过 <a href="https://craftsoul.github.io/kards-image-tool/about.html" target="_blank" rel="noopener noreferrer">GitHub Pages</a> 和 <a href="https://karsenal.netlify.app/about" target="_blank" rel="noopener noreferrer">Netlify</a> 链接访问。<a href="https://github.com/CraftSoul/kapi" target="_blank" rel="noopener noreferrer">卡组图片API</a>已部署，使用请标注作者和版权说明。</p>
                     <p>欢迎加入QQ群：<a href="https://qm.qq.com/q/9ezLyrKAnu" target="_blank" rel="noopener noreferrer">1055860783</a></p>
                 </div>
-                <!-- 悬浮链接按钮 -->
                 <div class="float-links">
                     <a class="float-link bili" href="https://space.bilibili.com/3546775476505152" target="_blank" rel="noopener noreferrer" title="BiliBili 百年匠魂">
                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/bilibili.svg" alt="">
@@ -1097,17 +1125,19 @@
             </div>
         </div>
 
-        <!-- block7 模拟开包（卡背翻转） -->
+        <!-- block7 模拟开包（3D 卡背翻转） -->
         <div class="content-block image-text" id="block7">
             <div class="block-image">
-                <div class="pack-flip-wrap" id="packFlipWrap">
-                    <div class="pack-flip" id="packFlip" role="button" tabindex="0" aria-label="点击开包">
-                        <div class="pack-flip-inner">
-                            <div class="pack-face pack-back">
-                                <img src="Poland.jpg" alt="波兰卡背" onerror="this.onerror=null;this.style.visibility='hidden';">
-                            </div>
-                            <div class="pack-face pack-front">
-                                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/pl-PL/agency_africa.avif&q=100" alt="非洲情报局" loading="lazy">
+                <div class="pack-stage" id="packStage">
+                    <div class="pack-flip-wrap" id="packFlipWrap">
+                        <div class="pack-flip" id="packFlip" role="button" tabindex="0" aria-label="点击开包">
+                            <div class="pack-flip-inner">
+                                <div class="pack-face pack-back">
+                                    <img src="Poland.jpg" alt="波兰卡背" onerror="this.onerror=null;this.style.visibility='hidden';">
+                                </div>
+                                <div class="pack-face pack-front">
+                                    <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/pl-PL/agency_africa.avif&q=100" alt="非洲情报局" loading="lazy">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1135,28 +1165,28 @@
                 <div class="block-content">
                     <div class="friend-list">
                         <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">KARDS DECKER</div>
                                 <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
                             </div>
                         </a>
                         <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">TrBrazの卡组库</div>
                                 <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
                             </div>
                         </a>
                         <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">雷性朗姆酒</div>
                                 <div class="friend-desc">KARDS Amiya bot作者</div>
                             </div>
                         </a>
                         <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">蘑菇</div>
                                 <div class="friend-desc">QQ社区AI猫娘~</div>
@@ -1179,28 +1209,28 @@
         /* ================= 多语言数据 ================= */
         const friendListHTML_zh = `<div class="friend-list">
             <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">KARDS DECKER</div>
                     <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
                 </div>
             </a>
             <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">TrBrazの卡组库</div>
                     <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
                 </div>
             </a>
             <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">雷性朗姆酒</div>
                     <div class="friend-desc">KARDS Amiya bot作者</div>
                 </div>
             </a>
             <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">蘑菇</div>
                     <div class="friend-desc">QQ社区AI猫娘~</div>
@@ -1210,28 +1240,28 @@
 
         const friendListHTML_en = `<div class="friend-list">
             <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">KARDS DECKER</div>
                     <div class="friend-desc">Community deck building &amp; intelligence</div>
                 </div>
             </a>
             <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">TrBraz's Deck Library</div>
                     <div class="friend-desc">Query tool &amp; Shizuoka bot hub</div>
                 </div>
             </a>
             <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">Thunder Rum</div>
                     <div class="friend-desc">KARDS Amiya bot creator</div>
                 </div>
             </a>
             <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
                 <div class="friend-info">
                     <div class="friend-name">Mushroom</div>
                     <div class="friend-desc">QQ community AI catgirl~</div>
@@ -1438,7 +1468,7 @@
             blocks.forEach(b => b.classList.add('in-view'));
         }
 
-        /* ================= 卡牌收藏：语言链 ================= */
+        /* ================= 卡牌收藏：语言链（已加快） ================= */
         const LANG_LIST = [
             { code: 'zh-Hans', flag: '🇨🇳', label: '简中' },
             { code: 'zh-Hant', flag: '🇨🇳', label: '繁中' },
@@ -1524,32 +1554,63 @@
 
         buildLangChain();
 
-        /* ================= 模拟开包：卡背翻转 ================= */
+        /* ================= 模拟开包：3D 卡背翻转 ================= */
+        const packStage = document.getElementById('packStage');
         const packFlip = document.getElementById('packFlip');
         const packFlipWrap = document.getElementById('packFlipWrap');
         const block7 = document.getElementById('block7');
         let packFlipped = false;
+
+        // 电脑端：初始居中放大
+        function setPackCentered() {
+            if (!packStage) return;
+            if (window.innerWidth > 780) {
+                packStage.classList.add('centered');
+                packStage.classList.remove('settled');
+            } else {
+                packStage.classList.remove('centered', 'settled');
+            }
+        }
+
+        function settlePack() {
+            if (!packStage) return;
+            if (window.innerWidth > 780) {
+                packStage.classList.remove('centered');
+                // 强制 reflow 让 transition 生效
+                void packStage.offsetWidth;
+                packStage.classList.add('settled');
+            }
+        }
 
         function doPackFlip() {
             if (packFlipped) return;
             packFlipped = true;
             packFlip.classList.add('done');
 
+            // 3D 抬起
             packFlip.classList.add('lift');
 
+            // 3D 翻转
             window.setTimeout(() => {
                 packFlip.classList.add('flip');
-            }, 500);
+            }, 480);
 
+            // 3D 落回 + 震动
             window.setTimeout(() => {
                 packFlip.classList.add('slam');
                 packFlipWrap.classList.add('shake');
                 window.setTimeout(() => packFlipWrap.classList.remove('shake'), 660);
-            }, 1500);
+            }, 1480);
 
+            // 电脑端动画结束后平滑归位
+            window.setTimeout(() => {
+                settlePack();
+            }, 1950);
+
+            // 显示文字
             window.setTimeout(() => {
                 block7.classList.add('revealed');
-            }, 1980);
+            }, 2050);
         }
 
         if (packFlip) {
@@ -1561,6 +1622,11 @@
                 }
             });
         }
+
+        setPackCentered();
+        window.addEventListener('resize', () => {
+            if (!packFlipped) setPackCentered();
+        });
 
         /* ================= 菜单 ================= */
         const menuToggleBtn = document.getElementById('menuToggleBtn');
