@@ -609,6 +609,72 @@
             visibility: visible;
         }
 
+        /* ============ 友链：四块卡片 ============ */
+        .friend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 2px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 16px;
+            border: 1px solid rgba(170, 142, 78, 0.35);
+            text-decoration: none !important;
+            border-bottom: 1px solid rgba(170, 142, 78, 0.35) !important;
+            transition: background .2s ease, border-color .2s ease, transform .2s ease;
+        }
+
+        .friend-item:hover {
+            background: rgba(201, 165, 59, 0.16);
+            border-color: #c9a53b !important;
+            transform: translateX(5px);
+        }
+
+        .friend-item .friend-thumb {
+            width: 52px;
+            height: 73px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 7px;
+            border: 1px solid #c7aa60;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, .55);
+            margin: 0;
+            transition: transform .2s ease;
+        }
+
+        .friend-item:hover .friend-thumb {
+            transform: scale(1.05);
+        }
+
+        .friend-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .friend-name {
+            font-size: .92rem;
+            font-weight: 800;
+            color: #fad974;
+            letter-spacing: .2px;
+            margin-bottom: 3px;
+        }
+
+        .friend-item:hover .friend-name {
+            color: #ffefb3;
+        }
+
+        .friend-desc {
+            font-size: .72rem;
+            line-height: 1.35;
+            color: #c8bfa3;
+        }
+
         .divider-line {
             margin: 1rem 0 2rem;
             text-align: center;
@@ -683,6 +749,10 @@
 
             .block-text h2 { font-size: 1.45rem; }
 
+            .friend-item {
+                text-align: left;
+            }
+
             .pack-flip-wrap { max-width: 300px; }
 
             .float-link.bili { top: -13px; right: 12px; }
@@ -704,6 +774,14 @@
             .float-link.qq { right: 84px; }
 
             .pack-flip-wrap { max-width: 260px; }
+
+            .friend-item .friend-thumb {
+                width: 46px;
+                height: 65px;
+            }
+
+            .friend-name { font-size: .85rem; }
+            .friend-desc { font-size: .68rem; }
         }
 
         /* ----- 中央公告弹窗 ----- */
@@ -993,54 +1071,46 @@
             </div>
         </div>
 
-        <!-- block8-1 友链 · 其一 -->
-        <div class="content-block image-text" id="block8-1">
+        <!-- block8 友链：恢复原 block-image + 四块友链卡片替代文本框 -->
+        <div class="content-block text-image" id="block8">
             <div class="block-image">
-                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="KARDS DECKER" loading="lazy">
+                <a href="https://www.bilibili.com/video/BV1GJ411x7h7" target="_blank" rel="noopener noreferrer">
+                    <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/en-EN/a_few_good_men.avif&q=100" alt="坏人多多" loading="lazy">
+                </a>
             </div>
-            <div class="block-text" data-i18n-block="block8_1">
+            <div class="block-text" data-i18n-block="block8">
                 <h2>👥 友链</h2>
                 <div class="block-content">
-                    <p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — KARDS社区工具，智能配卡与深度构筑引擎</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- block8-2 友链 · 其二 -->
-        <div class="content-block text-image" id="block8-2">
-            <div class="block-image">
-                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="TrBraz 卡组库" loading="lazy">
-            </div>
-            <div class="block-text" data-i18n-block="block8_2">
-                <h2>👥 友链</h2>
-                <div class="block-content">
-                    <p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a> — 综合查询工具 &amp; 静冈bot的联络站</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- block8-3 友链 · 其三 -->
-        <div class="content-block image-text" id="block8-3">
-            <div class="block-image">
-                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="雷性朗姆酒" loading="lazy">
-            </div>
-            <div class="block-text" data-i18n-block="block8_3">
-                <h2>👥 友链</h2>
-                <div class="block-content">
-                    <p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a> — KARDS Amiya bot作者</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- block8-4 友链 · 其四 -->
-        <div class="content-block text-image" id="block8-4">
-            <div class="block-image">
-                <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="蘑菇" loading="lazy">
-            </div>
-            <div class="block-text" data-i18n-block="block8_4">
-                <h2>👥 友链</h2>
-                <div class="block-content">
-                    <p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a> — QQ社区AI猫娘~</p>
+                    <div class="friend-list">
+                        <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                            <div class="friend-info">
+                                <div class="friend-name">KARDS DECKER</div>
+                                <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
+                            </div>
+                        </a>
+                        <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                            <div class="friend-info">
+                                <div class="friend-name">TrBrazの卡组库</div>
+                                <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
+                            </div>
+                        </a>
+                        <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                            <div class="friend-info">
+                                <div class="friend-name">雷性朗姆酒</div>
+                                <div class="friend-desc">KARDS Amiya bot作者</div>
+                            </div>
+                        </a>
+                        <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                            <div class="friend-info">
+                                <div class="friend-name">蘑菇</div>
+                                <div class="friend-desc">QQ社区AI猫娘~</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1055,6 +1125,68 @@
 <script>
     (function() {
         /* ================= 多语言数据 ================= */
+        const friendListHTML_zh = `<div class="friend-list">
+            <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">KARDS DECKER</div>
+                    <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
+                </div>
+            </a>
+            <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">TrBrazの卡组库</div>
+                    <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
+                </div>
+            </a>
+            <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">雷性朗姆酒</div>
+                    <div class="friend-desc">KARDS Amiya bot作者</div>
+                </div>
+            </a>
+            <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">蘑菇</div>
+                    <div class="friend-desc">QQ社区AI猫娘~</div>
+                </div>
+            </a>
+        </div>`;
+
+        const friendListHTML_en = `<div class="friend-list">
+            <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">KARDS DECKER</div>
+                    <div class="friend-desc">Community deck building &amp; intelligence</div>
+                </div>
+            </a>
+            <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">TrBraz's Deck Library</div>
+                    <div class="friend-desc">Query tool &amp; Shizuoka bot hub</div>
+                </div>
+            </a>
+            <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">Thunder Rum</div>
+                    <div class="friend-desc">KARDS Amiya bot creator</div>
+                </div>
+            </a>
+            <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                <div class="friend-info">
+                    <div class="friend-name">Mushroom</div>
+                    <div class="friend-desc">QQ community AI catgirl~</div>
+                </div>
+            </a>
+        </div>`;
+
         const langData = {
             zh: {
                 brand: 'KARDS 军械库',
@@ -1093,21 +1225,9 @@
                         title: '🎲 模拟开包',
                         content: `<p>·娱乐性功能，模拟开启卡包</p><p>·添加多个筛选器，取并集作为卡池</p><p>·同样支持上传自定义卡牌</p>`
                     },
-                    block8_1: {
+                    block8: {
                         title: '👥 友链',
-                        content: `<p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — KARDS社区工具，智能配卡与深度构筑引擎</p>`
-                    },
-                    block8_2: {
-                        title: '👥 友链',
-                        content: `<p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBrazの卡组库</a> — 综合查询工具 &amp; 静冈bot的联络站</p>`
-                    },
-                    block8_3: {
-                        title: '👥 友链',
-                        content: `<p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">雷性朗姆酒</a> — KARDS Amiya bot作者</p>`
-                    },
-                    block8_4: {
-                        title: '👥 友链',
-                        content: `<p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">蘑菇</a> — QQ社区AI猫娘~</p>`
+                        content: friendListHTML_zh
                     }
                 }
             },
@@ -1148,21 +1268,9 @@
                         title: '🎲 Pack Simulator',
                         content: `<p>· Fun feature: simulate opening packs</p><p>· Add multiple filters, union as card pool</p><p>· Also supports uploading custom cards</p>`
                     },
-                    block8_1: {
+                    block8: {
                         title: '👥 Friendship Links',
-                        content: `<p>·<a href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">KARDS DECKER</a> — community deck building &amp; intelligence</p>`
-                    },
-                    block8_2: {
-                        title: '👥 Friendship Links',
-                        content: `<p>·<a href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">TrBraz's Deck Library</a> — query tool &amp; <strong>Shizuoka bot</strong> hub</p>`
-                    },
-                    block8_3: {
-                        title: '👥 Friendship Links',
-                        content: `<p>·<a href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">Thunder Rum</a> — <strong>KARDS Amiya bot</strong> creator</p>`
-                    },
-                    block8_4: {
-                        title: '👥 Friendship Links',
-                        content: `<p>·<a href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">Mushroom</a> — QQ community AI catgirl~</p>`
+                        content: friendListHTML_en
                     }
                 }
             }
