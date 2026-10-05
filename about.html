@@ -410,7 +410,6 @@
         .lang-track {
             display: flex;
             width: max-content;
-            /* 略微加快：34s -> 22s */
             animation: langScroll 22s linear infinite;
         }
 
@@ -500,30 +499,23 @@
             }
         }
 
-        /* ============ 模拟开包：3D 卡背翻转（同 pack.html） ============ */
-        .pack-stage {
-            position: relative;
+        /* ============ 模拟开包：3D 翻转（同 pack.html） ============ */
+        .pack-flip-wrap {
             width: 100%;
             max-width: 380px;
             margin: 0 auto;
-            min-height: 420px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             perspective: 800px;
+            transition: transform 0.3s ease-out;
         }
 
         .pack-flip {
             position: relative;
             width: 100%;
-            max-width: 280px;
-            aspect-ratio: 500 / 702;
+            padding-top: 140.4%; /* 702 / 500 */
             cursor: pointer;
             outline: none;
-            border-radius: 15px;
+            border-radius: 30px;
             -webkit-tap-highlight-color: transparent;
-            transition: transform .5s cubic-bezier(.4, 0, .2, 1),
-                        opacity .5s ease;
             transform-style: preserve-3d;
         }
 
@@ -535,46 +527,34 @@
             position: absolute;
             inset: 0;
             transform-style: preserve-3d;
-            transition: transform .6s cubic-bezier(.4, 0, .2, 1);
-            border-radius: 15px;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         .pack-face {
             position: absolute;
             inset: 0;
-            border-radius: 15px;
+            border-radius: 30px;
             overflow: hidden;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
-            border: 2px solid #c9aa5b;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
+            border: 2px solid #aa8e4e;
             background: #1a1c12;
         }
 
         .pack-face.pack-back {
-            transform: rotateY(0deg);
+            background: #1a1c12;
             border-color: #aa8e4e;
-            background: linear-gradient(135deg, #3a3222, #1e1c16);
+            transform: rotateY(0deg);
         }
 
-        .pack-face.pack-back::after {
-            content: 'KARDS';
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(201, 170, 91, .38);
-            font-weight: 800;
-            letter-spacing: 4px;
-            font-size: 1.05rem;
-            z-index: 0;
-            pointer-events: none;
+        .pack-face.pack-front {
+            transform: rotateY(180deg);
+            border-color: #c9aa5b;
         }
 
         .block-image .pack-face img {
-            position: relative;
-            z-index: 1;
             width: 100%;
             height: 100%;
             max-width: none;
@@ -588,9 +568,13 @@
             transition: none;
         }
 
-        .pack-face.pack-front {
-            transform: rotateY(180deg);
-            border-color: #c9aa5b;
+        /* 占位态（未加载） */
+        .pack-flip.placeholder .pack-face.pack-back {
+            border-color: #5a4e32;
+        }
+
+        .pack-flip.placeholder .pack-face.pack-back img {
+            opacity: 0.3;
         }
 
         /* 抬起 */
@@ -601,34 +585,26 @@
         /* 翻转 */
         .pack-flip.flip .pack-flip-inner {
             transform: rotateY(-180deg) translateY(-45px) scale(1.18);
-            transition: transform 1s cubic-bezier(.4, 0, .2, 1);
         }
 
-        /* 落下归位 */
+        /* 落下 */
         .pack-flip.slam .pack-flip-inner {
             transform: rotateY(-180deg) translateY(0) scale(1);
-            transition: transform .45s cubic-bezier(.2, .9, .4, 1);
+            transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.4, 1);
         }
 
-        /* 电脑端：动画结束后平滑移回水平居中 */
-        @media (min-width: 781px) {
-            .pack-flip.centering {
-                transition: transform 1.05s cubic-bezier(.25, .9, .35, 1),
-                            opacity .55s ease;
-            }
-        }
-
+        /* 开包震动 */
         @keyframes packShake {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            15% { transform: translate(-6px, 5px) rotate(-.7deg); }
-            30% { transform: translate(6px, -5px) rotate(.8deg); }
-            50% { transform: translate(-5px, 4px) rotate(-.6deg); }
-            70% { transform: translate(5px, -4px) rotate(.5deg); }
-            88% { transform: translate(-3px, 2px) rotate(-.25deg); }
+            10% { transform: translate(-6px, 4px) rotate(-0.5deg); }
+            30% { transform: translate(4px, -5px) rotate(0.8deg); }
+            50% { transform: translate(-4px, 3px) rotate(-0.3deg); }
+            70% { transform: translate(5px, -4px) rotate(0.4deg); }
+            90% { transform: translate(3px, -2px) rotate(-0.1deg); }
         }
 
-        .pack-stage.shake {
-            animation: packShake .62s ease-in-out;
+        .pack-flip-wrap.shake {
+            animation: packShake 0.62s ease-in-out;
         }
 
         #block7 .block-text {
@@ -824,12 +800,7 @@
                 transform: none;
             }
 
-            .pack-stage {
-                min-height: 340px;
-                perspective: 700px;
-            }
-
-            .pack-flip { max-width: 240px; }
+            .pack-flip-wrap { max-width: 300px; }
 
             .float-link.bili { top: -13px; right: 12px; }
             .float-link.qq { top: -13px; right: 92px; }
@@ -849,12 +820,7 @@
             .float-link img { width: 12px; height: 12px; }
             .float-link.qq { right: 84px; }
 
-            .pack-stage {
-                min-height: 300px;
-                perspective: 600px;
-            }
-
-            .pack-flip { max-width: 210px; }
+            .pack-flip-wrap { max-width: 260px; }
 
             .friend-item .friend-thumb {
                 width: 46px;
@@ -1034,7 +1000,6 @@
                     <p>可通过 <a href="https://craftsoul.github.io/kards-image-tool/about.html" target="_blank" rel="noopener noreferrer">GitHub Pages</a> 和 <a href="https://karsenal.netlify.app/about" target="_blank" rel="noopener noreferrer">Netlify</a> 链接访问。<a href="https://github.com/CraftSoul/kapi" target="_blank" rel="noopener noreferrer">卡组图片API</a>已部署，使用请标注作者和版权说明。</p>
                     <p>欢迎加入QQ群：<a href="https://qm.qq.com/q/9ezLyrKAnu" target="_blank" rel="noopener noreferrer">1055860783</a></p>
                 </div>
-                <!-- 悬浮链接按钮 -->
                 <div class="float-links">
                     <a class="float-link bili" href="https://space.bilibili.com/3546775476505152" target="_blank" rel="noopener noreferrer" title="BiliBili 百年匠魂">
                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/bilibili.svg" alt="">
@@ -1126,14 +1091,14 @@
             </div>
         </div>
 
-        <!-- block7 模拟开包（3D 卡背翻转） -->
+        <!-- block7 模拟开包（3D 翻转，同 pack.html） -->
         <div class="content-block image-text" id="block7">
             <div class="block-image">
-                <div class="pack-stage" id="packStage">
-                    <div class="pack-flip" id="packFlip" role="button" tabindex="0" aria-label="点击开包">
+                <div class="pack-flip-wrap" id="packFlipWrap">
+                    <div class="pack-flip placeholder" id="packFlip" role="button" tabindex="0" aria-label="点击开包">
                         <div class="pack-flip-inner">
                             <div class="pack-face pack-back">
-                                <img src="Poland.jpg" alt="波兰卡背" onerror="this.onerror=null;this.style.visibility='hidden';">
+                                <img id="packBackImg" src="Poland.jpg" alt="波兰卡背" loading="lazy">
                             </div>
                             <div class="pack-face pack-front">
                                 <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/pl-PL/agency_africa.avif&q=100" alt="非洲情报局" loading="lazy">
@@ -1553,54 +1518,49 @@
 
         buildLangChain();
 
-        /* ================= 模拟开包：3D 卡背翻转（同 pack.html）+ 电脑端平滑归位 ================= */
+        /* ================= 模拟开包：3D 翻转（同 pack.html） ================= */
         const packFlip = document.getElementById('packFlip');
-        const packStage = document.getElementById('packStage');
+        const packFlipWrap = document.getElementById('packFlipWrap');
+        const packBackImg = document.getElementById('packBackImg');
         const block7 = document.getElementById('block7');
         let packFlipped = false;
 
-        // 初始状态：电脑端让卡牌水平居中（pack-stage 已 flex 居中）
-        // 动画结束后平滑移回水平居中：这里通过 transition + 重置偏移实现
-        function resetPackPosition() {
-            // 清除可能残留的位移
-            packFlip.style.transform = '';
+        // 卡背加载完成后移除 placeholder
+        if (packBackImg) {
+            const clearPlaceholder = () => packFlip.classList.remove('placeholder');
+            if (packBackImg.complete && packBackImg.naturalWidth > 0) {
+                clearPlaceholder();
+            } else {
+                packBackImg.addEventListener('load', clearPlaceholder);
+                packBackImg.addEventListener('error', clearPlaceholder);
+            }
         }
 
         function doPackFlip() {
             if (packFlipped) return;
+            if (packFlip.classList.contains('placeholder')) return;
             packFlipped = true;
             packFlip.classList.add('done');
 
-            // 1. 抬起
+            // 抬起
             packFlip.classList.add('lift');
 
-            // 2. 翻转
+            // 翻转
             window.setTimeout(() => {
                 packFlip.classList.add('flip');
-            }, 500);
+            }, 250);
 
-            // 3. 落下 + 震动
+            // 落下 + 震动
             window.setTimeout(() => {
                 packFlip.classList.add('slam');
-                packStage.classList.add('shake');
-                window.setTimeout(() => packStage.classList.remove('shake'), 660);
-            }, 1500);
+                packFlipWrap.classList.add('shake');
+                window.setTimeout(() => packFlipWrap.classList.remove('shake'), 660);
+            }, 900);
 
-            // 4. 显示文字
+            // 显示文字
             window.setTimeout(() => {
                 block7.classList.add('revealed');
-            }, 1980);
-
-            // 5. 电脑端平滑归位（动画完成后）
-            //    pack.html 中卡片翻转后停在原位，这里额外做一次平滑归位，
-            //    避免某些浏览器在 transform 结束后出现轻微偏移。
-            window.setTimeout(() => {
-                packFlip.classList.add('centering');
-                resetPackPosition();
-                window.setTimeout(() => {
-                    packFlip.classList.remove('centering');
-                }, 1100);
-            }, 2200);
+            }, 1400);
         }
 
         if (packFlip) {
