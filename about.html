@@ -505,7 +505,9 @@
             max-width: 380px;
             margin: 0 auto;
             perspective: 800px;
-            transition: transform 0.3s ease-out;
+            transition: transform 0.9s cubic-bezier(.2, .9, .3, 1),
+                        margin-left 0.9s cubic-bezier(.2, .9, .3, 1);
+            position: relative;
         }
 
         .pack-flip {
@@ -514,7 +516,7 @@
             padding-top: 140.4%; /* 702 / 500 */
             cursor: pointer;
             outline: none;
-            border-radius: 30px;
+            border-radius: 12px;
             -webkit-tap-highlight-color: transparent;
             transform-style: preserve-3d;
         }
@@ -528,30 +530,30 @@
             inset: 0;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
 
         .pack-face {
             position: absolute;
             inset: 0;
-            border-radius: 30px;
+            border-radius: 12px;
             overflow: hidden;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
-            border: 2px solid #aa8e4e;
-            background: #1a1c12;
+            border: 1px solid #c7aa60;
+            background: #2d291b;
         }
 
         .pack-face.pack-back {
-            background: #1a1c12;
-            border-color: #aa8e4e;
+            background: #2d291b;
+            border-color: #c7aa60;
             transform: rotateY(0deg);
         }
 
         .pack-face.pack-front {
             transform: rotateY(180deg);
-            border-color: #c9aa5b;
+            border-color: #c7aa60;
         }
 
         .block-image .pack-face img {
@@ -605,6 +607,19 @@
 
         .pack-flip-wrap.shake {
             animation: packShake 0.62s ease-in-out;
+        }
+
+        /* ---- 电脑端：初始水平居中，动画结束后平滑左移 ---- */
+        @media (min-width: 781px) {
+            #block7 .pack-flip-wrap {
+                margin-left: 50%;
+                transform: translateX(-50%);
+            }
+
+            #block7.revealed .pack-flip-wrap {
+                margin-left: 0;
+                transform: translateX(0);
+            }
         }
 
         #block7 .block-text {
@@ -1557,7 +1572,7 @@
                 window.setTimeout(() => packFlipWrap.classList.remove('shake'), 660);
             }, 900);
 
-            // 显示文字
+            // 显示文字，同时触发电脑端左移
             window.setTimeout(() => {
                 block7.classList.add('revealed');
             }, 1400);
