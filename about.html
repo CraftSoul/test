@@ -343,8 +343,18 @@
             width: 14px;
             height: 14px;
             display: block;
-            filter: brightness(0) invert(1);
             pointer-events: none;
+        }
+
+        /* 默认图标反白（B站/QQ/GitHub），KAPI 使用原色 */
+        .float-link.bili img,
+        .float-link.qq img,
+        .float-link.gh img {
+            filter: brightness(0) invert(1);
+        }
+
+        .float-link.kapi img {
+            filter: none;
         }
 
         .float-link:hover {
@@ -609,11 +619,11 @@
             visibility: visible;
         }
 
-        /* ============ 友链：四块卡片 ============ */
+        /* ============ 友链：四块卡片，图文-文图交替 ============ */
         .friend-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             margin-top: 2px;
         }
 
@@ -630,10 +640,27 @@
             transition: background .2s ease, border-color .2s ease, transform .2s ease;
         }
 
+        /* 奇数项：图左文右（默认） */
+        .friend-item:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        /* 偶数项：图右文左（文图交替） */
+        .friend-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
         .friend-item:hover {
             background: rgba(201, 165, 59, 0.16);
             border-color: #c9a53b !important;
+        }
+
+        .friend-item:nth-child(odd):hover {
             transform: translateX(5px);
+        }
+
+        .friend-item:nth-child(even):hover {
+            transform: translateX(-5px);
         }
 
         .friend-item .friend-thumb {
@@ -655,6 +682,11 @@
         .friend-info {
             flex: 1;
             min-width: 0;
+        }
+
+        /* 偶数项文字右对齐，与图右文左呼应 */
+        .friend-item:nth-child(even) .friend-info {
+            text-align: right;
         }
 
         .friend-name {
@@ -749,8 +781,28 @@
 
             .block-text h2 { font-size: 1.45rem; }
 
-            .friend-item {
+            /* 移动端友链保持图文-文图交替 */
+            .friend-item,
+            .friend-item:nth-child(odd),
+            .friend-item:nth-child(even) {
+                flex-direction: row;
+            }
+
+            .friend-item:nth-child(even) {
+                flex-direction: row-reverse;
+            }
+
+            .friend-item:nth-child(odd) .friend-info {
                 text-align: left;
+            }
+
+            .friend-item:nth-child(even) .friend-info {
+                text-align: right;
+            }
+
+            .friend-item:nth-child(odd):hover,
+            .friend-item:nth-child(even):hover {
+                transform: none;
             }
 
             .pack-flip-wrap { max-width: 300px; }
@@ -1071,7 +1123,7 @@
             </div>
         </div>
 
-        <!-- block8 友链：恢复原 block-image + 四块友链卡片替代文本框 -->
+        <!-- block8 友链 -->
         <div class="content-block text-image" id="block8">
             <div class="block-image">
                 <a href="https://www.bilibili.com/video/BV1GJ411x7h7" target="_blank" rel="noopener noreferrer">
@@ -1083,28 +1135,28 @@
                 <div class="block-content">
                     <div class="friend-list">
                         <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">KARDS DECKER</div>
                                 <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
                             </div>
                         </a>
                         <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">TrBrazの卡组库</div>
                                 <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
                             </div>
                         </a>
                         <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">雷性朗姆酒</div>
                                 <div class="friend-desc">KARDS Amiya bot作者</div>
                             </div>
                         </a>
                         <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                            <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
                             <div class="friend-info">
                                 <div class="friend-name">蘑菇</div>
                                 <div class="friend-desc">QQ社区AI猫娘~</div>
@@ -1127,28 +1179,28 @@
         /* ================= 多语言数据 ================= */
         const friendListHTML_zh = `<div class="friend-list">
             <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">KARDS DECKER</div>
                     <div class="friend-desc">KARDS社区工具，智能配卡与深度构筑引擎</div>
                 </div>
             </a>
             <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">TrBrazの卡组库</div>
                     <div class="friend-desc">综合查询工具 &amp; 静冈bot的联络站</div>
                 </div>
             </a>
             <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">雷性朗姆酒</div>
                     <div class="friend-desc">KARDS Amiya bot作者</div>
                 </div>
             </a>
             <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">蘑菇</div>
                     <div class="friend-desc">QQ社区AI猫娘~</div>
@@ -1158,28 +1210,28 @@
 
         const friendListHTML_en = `<div class="friend-list">
             <a class="friend-item" href="https://1939.kardsdecker.com" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/partnership.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">KARDS DECKER</div>
                     <div class="friend-desc">Community deck building &amp; intelligence</div>
                 </div>
             </a>
             <a class="friend-item" href="http://decks.breeze.org.cn" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/34th_infantry_regiment.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">TrBraz's Deck Library</div>
                     <div class="friend-desc">Query tool &amp; Shizuoka bot hub</div>
                 </div>
             </a>
             <a class="friend-item" href="https://space.bilibili.com/692733404" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/i16_ishak.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">Thunder Rum</div>
                     <div class="friend-desc">KARDS Amiya bot creator</div>
                 </div>
             </a>
             <a class="friend-item" href="https://qm.qq.com/q/IWHcwhbO6c" target="_blank" rel="noopener noreferrer">
-                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=50" alt="">
+                <img class="friend-thumb" src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/zh-Hans/tigercat.avif&q=20" alt="">
                 <div class="friend-info">
                     <div class="friend-name">Mushroom</div>
                     <div class="friend-desc">QQ community AI catgirl~</div>
@@ -1406,7 +1458,7 @@
         const collectionImg = document.getElementById('collectionImg');
         const langTrack = document.getElementById('langTrack');
 
-        let collectionLang = 'de-DE';   // 初始状态：德语
+        let collectionLang = 'de-DE';
         let langSwitching = false;
 
         function collectionImgUrl(lang) {
@@ -1436,7 +1488,6 @@
 
             const img = collectionImg;
 
-            // 1. 坍缩 + 模糊 + 旋转
             img.classList.remove('restoring');
             void img.offsetWidth;
             img.classList.add('switching');
@@ -1446,7 +1497,6 @@
                 const finish = () => {
                     if (finished) return;
                     finished = true;
-                    // 2. 复原
                     img.classList.remove('switching');
                     void img.offsetWidth;
                     img.classList.add('restoring');
@@ -1460,7 +1510,6 @@
                 img.onerror = finish;
                 img.src = collectionImgUrl(lang);
 
-                // 已缓存时也播放动画（onload 不一定触发时兜底）
                 window.setTimeout(finish, 2200);
             }, 400);
         }
@@ -1486,22 +1535,18 @@
             packFlipped = true;
             packFlip.classList.add('done');
 
-            // 抬起
             packFlip.classList.add('lift');
 
-            // 翻转
             window.setTimeout(() => {
                 packFlip.classList.add('flip');
             }, 500);
 
-            // 落下 + 震动
             window.setTimeout(() => {
                 packFlip.classList.add('slam');
                 packFlipWrap.classList.add('shake');
                 window.setTimeout(() => packFlipWrap.classList.remove('shake'), 660);
             }, 1500);
 
-            // 显示文字
             window.setTimeout(() => {
                 block7.classList.add('revealed');
             }, 1980);
