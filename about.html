@@ -505,9 +505,9 @@
             max-width: 380px;
             margin: 0 auto;
             perspective: 800px;
-            transition: transform 0.9s cubic-bezier(.2, .9, .3, 1),
-                        margin-left 0.9s cubic-bezier(.2, .9, .3, 1);
+            transition: transform .9s cubic-bezier(.2, .9, .3, 1);
             position: relative;
+            left: 0;
         }
 
         .pack-flip {
@@ -611,14 +611,28 @@
 
         /* ---- 电脑端：初始水平居中，动画结束后平滑左移 ---- */
         @media (min-width: 781px) {
-            #block7 .pack-flip-wrap {
-                margin-left: 50%;
-                transform: translateX(-50%);
+            /* 未进入视口前，绝对定位到内容区中心，不参与 flex 布局，避免父级居中影响 */
+            #block7 .block-image {
+                position: relative;
             }
 
+            #block7:not(.revealed) .pack-flip-wrap {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                margin: 0;
+                width: 380px;
+                max-width: 380px;
+            }
+
+            /* 拍下后恢复文档流，落在左侧 block-image 位置 */
             #block7.revealed .pack-flip-wrap {
-                margin-left: 0;
-                transform: translateX(0);
+                position: static;
+                left: auto;
+                top: auto;
+                transform: translate(0, 0);
+                margin: 0 auto;
             }
         }
 
