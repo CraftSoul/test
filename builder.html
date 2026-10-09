@@ -1060,7 +1060,8 @@ function updateSearchSuggest(){
   const box=document.getElementById('searchSuggest');
   const items=[];
   const lower=raw.toLowerCase();
-  if(raw==='白板'||lower==='wb'){items.push({label:'无词条 / 文本为空',hint:'将搜索替换为 text:',apply:()=>{input.value='text:';}});}
+  if(raw==='白板'||lower==='wb'){items.push({label:'文本为空',hint:'将搜索替换为 text:',apply:()=>{input.value='text:';}});}
+  if(raw==='非白板'||lower==='nwb'){items.push({label:'文本非空',hint:'将搜索替换为 text:_*',apply:()=>{input.value='text:_*';}});}
   if(/^\d{4}$/.test(raw)){const a=+raw[0],b=+raw[1],c=+raw[2],d=+raw[3];items.push({label:`花费 ${a}，行动 ${b}，${c} 攻 ${d} 防 的单位`,hint:'自动设置花费 / 行动花费 / 身材 / 类型',apply:()=>quickFill4(a,b,c,d)});}
   if(/^\d{3}$/.test(raw)){const a=+raw[0],b=+raw[1],c=+raw[2];items.push({label:`花费 ${a}，${b} 攻 ${c} 防 的单位`,hint:'自动设置花费 / 身材 / 类型',apply:()=>quickFill3(a,b,c)});}
   if(/^\d\/\d$/.test(raw)){const a=+raw[0],b=+raw[2];items.push({label:`${a} 攻 ${b} 防 的单位`,hint:'自动设置攻击 / 防御 / 类型',apply:()=>quickFill2(a,b)});}
