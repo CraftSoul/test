@@ -1105,10 +1105,10 @@ function filterCardsLogic(){
   if(selectedFilters.statuses.size){
     res=res.filter(c=>{
       for(const s of selectedFilters.statuses){
-        if(s==='active'&&!c.reserved&&!c.isSpawn&&!c.isVeteranSet&&!c.isCustom) return true;
-        if(s==='reserve'&&c.reserved&&!c.isCustom) return true;
-        if(s==='spawn'&&c.isSpawn&&!c.isCustom) return true;
-        if(s==='veteran'&&c.isVeteranSet&&!c.isCustom) return true;
+        if(s==='active'&&!c.reserved&&!c.isSpawn&&!c.isVeteranSet) return true;
+        if(s==='reserve'&&c.reserved) return true;
+        if(s==='spawn'&&c.isSpawn) return true;
+        if(s==='veteran'&&c.isVeteranSet) return true;
         if(s==='custom'&&c.isCustom) return true;
       }
       return false;
@@ -1119,7 +1119,7 @@ function filterCardsLogic(){
   if(selectedFilters.types.size) res=res.filter(c=>selectedFilters.types.has(c.type));
   if(selectedFilters.costs.size) res=res.filter(c=>{for(const cv of selectedFilters.costs){if(cv==='7+'&&c.cost>=7)return true;if(cv!=='7+'&&c.cost===parseInt(cv))return true;}return false;});
   if(selectedFilters.rarities.size) res=res.filter(c=>selectedFilters.rarities.has(c.rarity));
-  if(selectedFilters.sets.size) res=res.filter(c=>{if(c.isCustom)return selectedFilters.sets.has('自定义');const eff=getEffectiveSet(c);return selectedFilters.sets.has(eff);});
+  if(selectedFilters.sets.size) res=res.filter(c=>{const eff=getEffectiveSet(c);return selectedFilters.sets.has(eff);});
 
   const selTypes=[...selectedFilters.types];
   const onlyUnits=selTypes.length>0&&selTypes.every(t=>unitTypes.includes(t));
