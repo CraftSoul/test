@@ -2107,58 +2107,37 @@ async function generateKapiPreview(setStatus,previewDiv){
     else nonCustomIdx++;
   }
 
-  // ===== 负间距覆盖检测（基于 effectiveSlots，用坐标判断重叠）=====
-  if(spacingX<0||spacingY<0){
-    const scaleFactorCheck=Math.max(25,Math.min(100,scale))/100;
-    const cardWCheck=Math.floor(500*scaleFactorCheck);
-    const cardHCheck=Math.floor(702*scaleFactorCheck);
-    const totalSlots=effectiveSlots.length;
-    for(let i=0;i<totalSlots;i++){
-      const c=effectiveSlots[i].card;
-      if(!(c.isCustom||!c.importId)) continue;
-      const row=Math.floor(i/cols),col=i%cols;
-      const xi=col*(cardWCheck+spacingX);
-      const yi=row*(cardHCheck+spacingY);
+  // ===== 布局坐标 & 自定义卡层叠关系判定 =====
+const scaleFactor=Math.max(25,Math.min(100,scale))/100;
+const cardW=Math.floor(500*scaleFactor);
+const cardH=Math.floor(702*scaleFactor);
+const radius=Math.max(2,Math.floor(15*scaleFactor));
 
-      if(spacingX<0){
-        for(let cc=col+1;cc<cols;cc++){
-          const j=row*cols+cc;
-          if(j>=totalSlots) break;
-          const nc=effectiveSlots[j].card;
-          if(nc.isCustom||!nc.importId) continue;
-          const xc=cc*(cardWCheck+spacingX);
-          if(xc<xi+cardWCheck && xc+cardWCheck>xi){
-            throw new Error(`自定义卡位置 ${i+1} 会被右侧卡牌覆盖（横间距为负），请调整间距或列数`);
-          }
-        }
-      }
-      if(spacingY<0){
-        const yNext=(row+1)*(cardHCheck+spacingY);
-        if(yNext<yi+cardHCheck){
-          if(spacingX>=0){
-            const j=(row+1)*cols+col;
-            if(j<totalSlots){
-              const nc=effectiveSlots[j].card;
-              if(!(nc.isCustom||!nc.importId)){
-                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵间距为负），请调整间距或列数`);
-              }
-            }
-          }else{
-            for(let cc=0;cc<cols;cc++){
-              const j=(row+1)*cols+cc;
-              if(j>=totalSlots) break;
-              const nc=effectiveSlots[j].card;
-              if(nc.isCustom||!nc.importId) continue;
-              const xc=cc*(cardWCheck+spacingX);
-              if(xc<xi+cardWCheck && xc+cardWCheck>xi){
-                throw new Error(`自定义卡位置 ${i+1} 会被下方卡牌覆盖（纵横间距均为负），请调整间距或列数`);
-              }
-            }
-          }
-        }
-      }
-    }
+const slotPositions=effectiveSlots.map((_,i)=>{
+  const row=Math.floor(i/cols),col=i%cols;
+  return {x:col*(cardW+spacingX),y:row*(cardH+spacingY),w:cardW,h:cardH};
+});
+const rectOverlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+
+// 'above' = 叠加在 KAPI 之上；'below' = 绘制在 KAPI 之下
+const customLayer=new Map();
+for(let i=0;i<effectiveSlots.length;i++){
+  const c=effectiveSlots[i].card;
+  if(!(c.isCustom||!c.importId)) continue;
+  let covers=false,covered=false;
+  for(let j=0;j<effectiveSlots.length;j++){
+    if(j===i) continue;
+    const oc=effectiveSlots[j].card;
+    if(oc.isCustom||!oc.importId) continue;      // 只与非自定义卡比较
+    if(!rectOverlap(slotPositions[i],slotPositions[j])) continue;
+    if(j<i) covers=true;   // 索引更小 = 先绘制 = 被自定义卡压住
+    else    covered=true;  // 索引更大 = 后绘制 = 压住自定义卡
   }
+  if(covers&&covered){
+    throw new Error(`自定义卡位置 ${i+1} 同时覆盖与被覆盖于非自定义卡牌，层叠关系冲突，请调整间距或列数`);
+  }
+  customLayer.set(i,covered?'below':'above');
+}
 
   const userWantsStats=document.getElementById('statsCardToggle').checked;
   const userWantsQr=document.getElementById('qrToggle').checked;
