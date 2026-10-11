@@ -2179,7 +2179,7 @@ async function generateKapiPreview(setStatus,previewDiv){
     qrTitle:document.getElementById('qrCardTitle').value.trim()||null,
     statsChartToggle:effectiveExtraStats,
     lang:document.getElementById('imgLang').value,
-    bgColor:getBgColor(),
+    bgColor:'transparent',
     foldEnabled,
     cardOverrides
   };
@@ -2200,107 +2200,123 @@ async function generateKapiPreview(setStatus,previewDiv){
   if(!mainImage) throw new Error('KAPI 未返回图片');
   kapiStatsChartImage=data.statsChart||null;
 
-  let finalImage=mainImage;
-
   // ===== 在返回图片上叠加自定义卡牌 =====
-  if(hasCustomOrNoImport){
-    setStatus('⏳ 正在叠加自定义卡牌...');
-    const baseImg=await loadImg(mainImage,false);
-    const scaleFactor=Math.max(25,Math.min(100,scale))/100;
-    const cardW=Math.floor(500*scaleFactor);
-    const cardH=Math.floor(702*scaleFactor);
-    const canvas=document.createElement('canvas');
-    canvas.width=baseImg.width;canvas.height=baseImg.height;
-    const ctx=canvas.getContext('2d');
-    ctx.drawImage(baseImg,0,0);
+  // ===== 三层合成：背景 → below 自定义卡 → KAPI 图 → above 自定义卡 =====
+if(hasCustomOrNoImport){
+  setStatus('⏳ 正在叠加自定义卡牌...');
+  const baseImg=await loadImg(mainImage,false);
+  const canvas=document.createElement('canvas');
+  canvas.width=baseImg.width;
+  canvas.height=baseImg.height;
+  const ctx=canvas.getContext('2d');
 
-    // 固定尺寸标签（与 KAPI 服务端一致，不随缩放）
-    const drawTag=(text,tx,ty,color,bg='rgba(0,0,0,0.85)')=>{
-      ctx.save();
-      ctx.shadowColor='rgba(0,0,0,0.8)';
-      ctx.shadowBlur=4;
-      ctx.font='bold 28px "Segoe UI"';
-      const metrics=ctx.measureText(text);
-      const pad=12;
-      const rectW=metrics.width+pad*2;
-      const rectH=60;
-      const arrowSize=14;
-      ctx.beginPath();
-      ctx.moveTo(tx+8,ty);
-      ctx.lineTo(tx+rectW,ty);
-      ctx.lineTo(tx+rectW+arrowSize,ty+rectH/2);
-      ctx.lineTo(tx+rectW,ty+rectH);
-      ctx.lineTo(tx+8,ty+rectH);
-      ctx.quadraticCurveTo(tx,ty+rectH,tx,ty+rectH-8);
-      ctx.lineTo(tx,ty+8);
-      ctx.quadraticCurveTo(tx,ty,tx+8,ty);
-      ctx.closePath();
-      ctx.fillStyle=bg;
-      ctx.fill();
-      ctx.shadowBlur=0;
-      ctx.fillStyle=color;
-      ctx.textAlign='left';
-      ctx.textBaseline='middle';
-      ctx.fillText(text,tx+pad,ty+rectH/2);
-      ctx.restore();
-    };
+  // 背景统一在此铺设（与本地模式一致）
+  const bgColor=getBgColor();
+  if(bgColor&&bgColor!=='transparent'){
+    ctx.fillStyle=bgColor;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
 
-    // 遍历 effectiveSlots，在自定义卡对应 KAPI 输出位置绘制
-    let kapiSlotPos=0;
-    for(const slot of effectiveSlots){
-      const c=slot.card;
-      if(!(c.isCustom||!c.importId)){
-        kapiSlotPos++;
-        continue;
-      }
-      const row=Math.floor(kapiSlotPos/cols);
-      const col=kapiSlotPos%cols;
-      const x=col*(cardW+spacingX);
-      const y=row*(cardH+spacingY);
+  // 固定尺寸标签（与 KAPI 服务端一致）
+  const drawTag=(text,tx,ty,color,bg='rgba(0,0,0,0.85)')=>{
+    ctx.save();ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;
+    ctx.font='bold 28px "Segoe UI"';
+    const metrics=ctx.measureText(text);
+    const pad=12,rectW=metrics.width+pad*2,rectH=60,arrowSize=14;
+    ctx.beginPath();
+    ctx.moveTo(tx+8,ty);ctx.lineTo(tx+rectW,ty);
+    ctx.lineTo(tx+rectW+arrowSize,ty+rectH/2);
+    ctx.lineTo(tx+rectW,ty+rectH);ctx.lineTo(tx+8,ty+rectH);
+    ctx.quadraticCurveTo(tx,ty+rectH,tx,ty+rectH-8);
+    ctx.lineTo(tx,ty+8);ctx.quadraticCurveTo(tx,ty,tx+8,ty);
+    ctx.closePath();
+    ctx.fillStyle=bg;ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle=color;
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(text,tx+pad,ty+rectH/2);ctx.restore();
+  };
 
-      let img;
-      if(c.imageData){img=await loadImg(c.imageData,false);}
-      else{
-        const lang=document.getElementById('imgLang').value;
-        const ver=slot.version||DEFAULT_VERSION;
-        img=await loadImg(getCardImageUrl(c.image,lang,ver,100),true);
-      }
+  const lang=document.getElementById('imgLang').value;
 
-      ctx.save();
-      const r=Math.max(2,Math.floor(15*scaleFactor));
-      ctx.beginPath();
-      ctx.moveTo(x+r,y);ctx.lineTo(x+cardW-r,y);
-      ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+r);
-      ctx.lineTo(x+cardW,y+cardH-r);
-      ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-r,y+cardH);
-      ctx.lineTo(x+r,y+cardH);
-      ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-r);
-      ctx.lineTo(x,y+r);
-      ctx.quadraticCurveTo(x,y,x+r,y);
-      ctx.closePath();
-      ctx.clip();
-      const fit=c.imageFit||'cover';
-      const iA=img.width/img.height,cA=cardW/cardH;
-      let sx=0,sy=0,sw=img.width,sh=img.height;
-      if(fit==='cover'){if(iA>cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
-      else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
-      ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
-      ctx.restore();
-
-      const count=slot.count||1;
-      if(foldEnabled&&count>1){
-        drawTag('×'+(count>99?'99+':count),x,y+99*scaleFactor,'#fff');
-      }
-      if(cardStarMap.get(c.cardId)){
-        let off=0;
-        if(foldEnabled&&count>1) off=64;
-        drawTag('★',x,y+99*scaleFactor+off,'#ffd700');
-      }
-
-      kapiSlotPos++;
+  // 预加载所有自定义卡图
+  const customImgs=new Map();
+  for(let i=0;i<effectiveSlots.length;i++){
+    const c=effectiveSlots[i].card;
+    if(!(c.isCustom||!c.importId)) continue;
+    let img;
+    if(c.imageData){img=await loadImg(c.imageData,false);}
+    else{
+      const ver=effectiveSlots[i].version||DEFAULT_VERSION;
+      img=await loadImg(getCardImageUrl(c.image,lang,ver,100),true);
     }
+    customImgs.set(i,img);
+  }
+
+  const drawCustomCard=(i)=>{
+    const slot=effectiveSlots[i];
+    const c=slot.card;
+    const img=customImgs.get(i);
+    if(!img) return;
+    const pos=slotPositions[i];
+    const x=pos.x,y=pos.y;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x+radius,y);ctx.lineTo(x+cardW-radius,y);
+    ctx.quadraticCurveTo(x+cardW,y,x+cardW,y+radius);
+    ctx.lineTo(x+cardW,y+cardH-radius);
+    ctx.quadraticCurveTo(x+cardW,y+cardH,x+cardW-radius,y+cardH);
+    ctx.lineTo(x+radius,y+cardH);
+    ctx.quadraticCurveTo(x,y+cardH,x,y+cardH-radius);
+    ctx.lineTo(x,y+radius);
+    ctx.quadraticCurveTo(x,y,x+radius,y);
+    ctx.closePath();ctx.clip();
+    const fit=c.imageFit||'cover';
+    const iA=img.width/img.height,cA=cardW/cardH;
+    let sx=0,sy=0,sw=img.width,sh=img.height;
+    if(fit==='cover'){if(iA>cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
+    else if(fit==='contain'){if(iA<cA){sh=img.height;sw=img.height*cA;sx=(img.width-sw)/2;}else{sw=img.width;sh=img.width/cA;sy=(img.height-sh)/2;}}
+    ctx.drawImage(img,sx,sy,sw,sh,x,y,cardW,cardH);
+    ctx.restore();
+
+    const count=slot.count||1;
+    if(foldEnabled&&count>1){
+      drawTag('×'+(count>99?'99+':count),x,y+99*scaleFactor,'#fff');
+    }
+    if(cardStarMap.get(c.cardId)){
+      let off=0;
+      if(foldEnabled&&count>1) off=64;
+      drawTag('★',x,y+99*scaleFactor+off,'#ffd700');
+    }
+  };
+
+  // 第 1 层：被非自定义卡覆盖的自定义卡
+  for(let i=0;i<effectiveSlots.length;i++){
+    if(customLayer.get(i)==='below') drawCustomCard(i);
+  }
+  // 第 2 层：KAPI 返回图（透明区域露出下层自定义卡，非透明处盖住下层）
+  ctx.drawImage(baseImg,0,0);
+  // 第 3 层：覆盖非自定义卡的自定义卡
+  for(let i=0;i<effectiveSlots.length;i++){
+    if(customLayer.get(i)!=='below') drawCustomCard(i);
+  }
+
     finalImage=canvas.toDataURL('image/png');
   }
+  else{
+  const bgColor=getBgColor();
+  if(bgColor&&bgColor!=='transparent'){
+    const baseImg=await loadImg(mainImage,false);
+    const canvas=document.createElement('canvas');
+    canvas.width=baseImg.width;
+    canvas.height=baseImg.height;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle=bgColor;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(baseImg,0,0);
+    finalImage=canvas.toDataURL('image/png');
+  }
+}
 
   kapiResultImage=finalImage;
   previewDiv.innerHTML='';

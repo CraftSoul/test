@@ -1565,7 +1565,7 @@
                 if (!match) return false;
             }
             if (filter.sets && filter.sets.length) {
-                const cardSet = card.isCustom ? '自定义' : (card.setName || '基础');
+                const cardSet = card.setName || '基础';
                 if (!filter.sets.includes(cardSet)) return false;
             }
             return true;
