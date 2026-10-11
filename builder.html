@@ -2119,10 +2119,10 @@ const slotPositions=effectiveSlots.map((_,i)=>{
 });
 const rectOverlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 
-// 'above' = 叠加在 KAPI 之上；'below' = 绘制在 KAPI 之下
 const customLayer=new Map();
 for(let i=0;i<effectiveSlots.length;i++){
   const c=effectiveSlots[i].card;
+  if(c.isHeadquarter){customLayer.set(i,'hq');continue;}  // ← 总部单独归类
   if(!(c.isCustom||!c.importId)) continue;
   let covers=false,covered=false;
   for(let j=0;j<effectiveSlots.length;j++){
@@ -2180,7 +2180,6 @@ for(let i=0;i<effectiveSlots.length;i++){
   kapiStatsChartImage=data.statsChart||null;
 
   // ===== 在返回图片上叠加自定义卡牌 =====
-  // ===== 三层合成：背景 → below 自定义卡 → KAPI 图 → above 自定义卡 =====
 if(hasCustomOrNoImport){
   setStatus('⏳ 正在叠加自定义卡牌...');
   const baseImg=await loadImg(mainImage,false);
@@ -2268,17 +2267,20 @@ if(hasCustomOrNoImport){
       drawTag('★',x,y+99*scaleFactor+off,'#ffd700');
     }
   };
-
-  // 第 1 层：被非自定义卡覆盖的自定义卡
-  for(let i=0;i<effectiveSlots.length;i++){
-    if(customLayer.get(i)==='below') drawCustomCard(i);
-  }
-  // 第 2 层：KAPI 返回图（透明区域露出下层自定义卡，非透明处盖住下层）
-  ctx.drawImage(baseImg,0,0);
-  // 第 3 层：覆盖非自定义卡的自定义卡
-  for(let i=0;i<effectiveSlots.length;i++){
-    if(customLayer.get(i)!=='below') drawCustomCard(i);
-  }
+ // 第 0 层：总部
+for(let i=0;i<effectiveSlots.length;i++){
+  if(customLayer.get(i)==='hq') drawCustomCard(i);
+}
+// 第 1 层：below
+for(let i=0;i<effectiveSlots.length;i++){
+  if(customLayer.get(i)==='below') drawCustomCard(i);
+}
+// 第 2 层：KAPI
+ctx.drawImage(baseImg,0,0);
+// 第 3 层：above
+for(let i=0;i<effectiveSlots.length;i++){
+  if(customLayer.get(i)&&customLayer.get(i)!=='below'&&customLayer.get(i)!=='hq') drawCustomCard(i);
+}
 
     finalImage=canvas.toDataURL('image/png');
   }
