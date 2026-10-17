@@ -1586,9 +1586,7 @@
                         isSpawn: j.set === "OnlySpawnable",
                         isVeteranSet: j.set === "Special",
                         canCreate: j.can_create || [],
-                        // 新增：流亡阵营（小写，可能为空字符串）
                         exile: exileRaw,
-                        // 新增：常备卡池（永不轮换）
                         permanentPool: j.permanent_pool === true,
                         rawJson: j
                     };
