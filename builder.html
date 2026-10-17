@@ -3130,24 +3130,29 @@ function getCardWeight(item,params){
     if(inRange) w*=(1+params.costStrength*3);
   }
   // 关键词加权
-  if(params.keyword&&params.keywordStrength>0){
-    const kw=params.keyword.toLowerCase();
-    const texts=[];
-    if(card.titleMap) for(const k in card.titleMap) texts.push(card.titleMap[k]);
-    if(card.titleZh) texts.push(card.titleZh);
-    if(card.textMap) for(const k in card.textMap) texts.push(card.textMap[k]);
-    if(card.text_zh) texts.push(card.text_zh);
-    if(card.attributes) for(const a of card.attributes){
-      texts.push(a);
-      if(attrTranslation[a]) texts.push(attrTranslation[a]);
-    }
-    if(!keywordHit && card.exile){
-      const exileName = getFactionName(card.exile);
-      const exileTexts = ['流亡', 'exile', exileName];
-      keywordHit = exileTexts.some(t=>t&&t.toLowerCase().includes(kw));
-    }
-    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*50);
+if(params.keyword&&params.keywordStrength>0){
+  const kw=params.keyword.toLowerCase();
+  const texts=[];
+  if(card.titleMap) for(const k in card.titleMap) texts.push(card.titleMap[k]);
+  if(card.titleZh) texts.push(card.titleZh);
+  if(card.textMap) for(const k in card.textMap) texts.push(card.textMap[k]);
+  if(card.text_zh) texts.push(card.text_zh);
+  if(card.attributes) for(const a of card.attributes){
+    texts.push(a);
+    if(attrTranslation[a]) texts.push(attrTranslation[a]);
   }
+
+  let keywordHit = texts.some(t=>t&&t.toLowerCase().includes(kw));
+
+  // 流亡词条不在 attributes 中，单独判断
+  if(!keywordHit && card.exile){
+    const exileName = getFactionName(card.exile);
+    const exileTexts = ['流亡', 'exile', exileName];
+    keywordHit = exileTexts.some(t=>t&&t.toLowerCase().includes(kw));
+  }
+
+  if(keywordHit) w*=(1+params.keywordStrength*50);
+}
   // 造价加权
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
     const rarity=card.rarity||'Standard';
