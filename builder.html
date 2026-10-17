@@ -729,8 +729,8 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
       </div>
 
       <div class="gen-actions" style="margin-top:20px;">
-        <button id="rfStartBtn" style="background:#6a8a4a;">开始填充</button>
-        <button id="rfCancelBtn" style="background:#5a4a3a;">取消</button>
+        <button type="button" id="rfStartBtn" style="background:#6a8a4a;color:#f5efdb;border:none;padding:8px 18px;border-radius:40px;font-weight:bold;cursor:pointer;">开始填充</button>
+        <button type="button" id="rfCancelBtn" style="background:#5a4a3a;color:#f5efdb;border:none;padding:8px 18px;border-radius:40px;font-weight:bold;cursor:pointer;">取消</button>
       </div>
       <div id="rfStatus" class="gen-status" style="margin-top:10px;"></div>
     </div>
@@ -1898,17 +1898,24 @@ async function generateDeckImageLocal(opts){
 // ==================== 统计卡 / 二维码卡绘制 ====================
 function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
   if(!img) return;
-  let iw=img.naturalWidth||img.width||0;
-  let ih=img.naturalHeight||img.height||0;
-  if(!iw||!ih){ iw=dw; ih=dh; }
-
-  // 将图标先栅格化到与目标尺寸相同的临时 canvas，避免 SVG 直接绘制出现白块
-  const tmp=document.createElement('canvas');
-  tmp.width=Math.max(1,Math.round(dw));
-  tmp.height=Math.max(1,Math.round(dh));
-  const tctx=tmp.getContext('2d');
-  tctx.clearRect(0,0,tmp.width,tmp.height);
-
+  const iw=img.naturalWidth||img.width||0;
+  const ih=img.naturalHeight||img.height||0;
+  const isSvg=(img.src||'').toLowerCase().includes('.svg') || (img.src||'').startsWith('data:image/svg');
+  if(!iw||!ih){
+    // 宽高未知（常见于 SVG），按 contain 绘制，避免被拉伸成正方形
+    try{ctx.drawImage(img,dx,dy,dw,dh);}catch(_){}
+    return;
+  }
+  if(isSvg){
+    // SVG 统一按 contain 绘制，保持原始比例
+    const iA=iw/ih, dA=dw/dh;
+    let w,h,x,y;
+    if(iA>dA){w=dw;h=dw/iA;x=dx;y=dy+(dh-h)/2;}
+    else{h=dh;w=dh*iA;x=dx+(dw-w)/2;y=dy;}
+    try{ctx.drawImage(img,x,y,w,h);}catch(_){}
+    return;
+  }
+  if(fit==='stretch'){ctx.drawImage(img,dx,dy,dw,dh);return;}
   const iA=iw/ih,dA=dw/dh;
   let sx=0,sy=0,sw=iw,sh=ih;
   if(fit==='cover'){
@@ -1917,17 +1924,8 @@ function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
   }else if(fit==='contain'){
     if(iA<dA){sh=ih;sw=ih*dA;sx=(iw-sw)/2;}
     else{sw=iw;sh=iw/dA;sy=(ih-sh)/2;}
-  }else if(fit==='stretch'){
-    sx=0;sy=0;sw=iw;sh=ih;
   }
-
-  try{
-    tctx.drawImage(img,sx,sy,sw,sh,0,0,tmp.width,tmp.height);
-    ctx.drawImage(tmp,dx,dy,dw,dh);
-  }catch(e){
-    // 栅格化失败时回退为直接绘制
-    try{ctx.drawImage(img,dx,dy,dw,dh);}catch(_){}
-  }
+  ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
 }
 
 async function drawStatsCard(ctx,x,y,w,h,radius,customTitle){
@@ -3069,6 +3067,7 @@ function computeAllyCount(main,ally){
 function validateDeckForFill(main,ally){
   const total=Array.from(deckMap.values()).reduce((s,e)=>s+e.count,0);
   if(total>39) return {valid:false,reason:'卡组总数超过39张'};
+  if(total==39) return {valid:false,reason:'刚好39张，何意味？'};
   const sameNation=(main===ally);
   let allyCount=0;
   for(const {card,count} of deckMap.values()){
@@ -3142,7 +3141,7 @@ function getCardWeight(item,params){
       texts.push(a);
       if(attrTranslation[a]) texts.push(attrTranslation[a]);
     }
-    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*3);
+    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*15);
   }
   // 造价加权
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
