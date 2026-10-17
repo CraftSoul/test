@@ -1900,9 +1900,15 @@ function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
   if(!img) return;
   let iw=img.naturalWidth||img.width||0;
   let ih=img.naturalHeight||img.height||0;
-  // SVG 可能宽高为 0，回退到正方形绘制
   if(!iw||!ih){ iw=dw; ih=dh; }
-  if(fit==='stretch'){ctx.drawImage(img,dx,dy,dw,dh);return;}
+
+  // 将图标先栅格化到与目标尺寸相同的临时 canvas，避免 SVG 直接绘制出现白块
+  const tmp=document.createElement('canvas');
+  tmp.width=Math.max(1,Math.round(dw));
+  tmp.height=Math.max(1,Math.round(dh));
+  const tctx=tmp.getContext('2d');
+  tctx.clearRect(0,0,tmp.width,tmp.height);
+
   const iA=iw/ih,dA=dw/dh;
   let sx=0,sy=0,sw=iw,sh=ih;
   if(fit==='cover'){
@@ -1911,8 +1917,17 @@ function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
   }else if(fit==='contain'){
     if(iA<dA){sh=ih;sw=ih*dA;sx=(iw-sw)/2;}
     else{sw=iw;sh=iw/dA;sy=(ih-sh)/2;}
+  }else if(fit==='stretch'){
+    sx=0;sy=0;sw=iw;sh=ih;
   }
-  ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
+
+  try{
+    tctx.drawImage(img,sx,sy,sw,sh,0,0,tmp.width,tmp.height);
+    ctx.drawImage(tmp,dx,dy,dw,dh);
+  }catch(e){
+    // 栅格化失败时回退为直接绘制
+    try{ctx.drawImage(img,dx,dy,dw,dh);}catch(_){}
+  }
 }
 
 async function drawStatsCard(ctx,x,y,w,h,radius,customTitle){
@@ -2853,7 +2868,12 @@ function setupCustomFactionEvents(){
     document.getElementById('cfColor').value='#c9a53b';
     document.getElementById('cfIconFit').value='cover';
     iconData=null;
-    document.getElementById('cfIconPreview').innerHTML='<span style="color:#7a705a;font-size:.65rem;">无</span>';
+    const colorText=document.getElementById('cfColorTextPreview');
+    if(colorText){
+      colorText.textContent='阵营预览';
+      colorText.style.background='#c9a53b';
+      colorText.style.color=contrastText('#c9a53b');
+    }
     setCfSource('file');
     modal.style.display='flex';
   });
@@ -2887,27 +2907,20 @@ function setupCustomFactionEvents(){
     }
   });
 
-function updateCfPreview(){
-  const preview=document.getElementById('cfIconPreview');
-  const fit=document.getElementById('cfIconFit').value;
-  if(!iconData){
-    preview.innerHTML='<span style="color:#7a705a;font-size:.65rem;">无</span>';
-  }else{
-    const fitClass=fit==='contain'?'fit-contain':fit==='stretch'?'fit-stretch':'';
-    preview.innerHTML=`<img src="${iconData}" class="${fitClass}" style="object-fit:${fit==='stretch'?'fill':fit}">`;
+  function updateCfPreview(){
+    const name=document.getElementById('cfName').value.trim()||'阵营预览';
+    const color=document.getElementById('cfColor').value;
+    const colorText=document.getElementById('cfColorTextPreview');
+    if(colorText){
+      colorText.style.background=color;
+      colorText.style.color=contrastText(color);
+      colorText.textContent=name;
+    }
   }
-  const name=document.getElementById('cfName').value.trim()||'阵营预览';
-  const color=document.getElementById('cfColor').value;
-  const colorText=document.getElementById('cfColorTextPreview');
-  if(colorText){
-    colorText.style.background=color;
-    colorText.style.color=contrastText(color);
-    colorText.textContent=name;
-  }
-}
-document.getElementById('cfName')?.addEventListener('input',updateCfPreview);
-document.getElementById('cfColor')?.addEventListener('input',updateCfPreview);
+  document.getElementById('cfName')?.addEventListener('input',updateCfPreview);
+  document.getElementById('cfColor')?.addEventListener('input',updateCfPreview);
   document.getElementById('cfIconFit')?.addEventListener('change',updateCfPreview);
+
   cancelBtn?.addEventListener('click',()=>{modal.style.display='none';});
   modal?.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none';});
 
@@ -3173,6 +3186,19 @@ function randomFillDeck(){
       main=mainOptions[Math.floor(Math.random()*mainOptions.length)];
       // 允许主盟相同
       ally=allyOptions[Math.floor(Math.random()*allyOptions.length)];
+
+      // 同步到界面与全局
+      mainNation=main;
+      allyNation=ally;
+      const mainSel=document.getElementById('mainNationSelect');
+      const allySel=document.getElementById('allyNationSelect');
+      const mMain=document.getElementById('mobileMainNation');
+      const mAlly=document.getElementById('mobileAllyNation');
+      if(mainSel) mainSel.value=main;
+      if(allySel) allySel.value=ally;
+      if(mMain) mMain.value=main;
+      if(mAlly) mAlly.value=ally;
+      updateFactionStats();
     }
 
     const validation=validateDeckForFill(main,ally);
