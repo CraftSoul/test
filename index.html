@@ -475,6 +475,25 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        /* ===== 流亡标签（网格右上角） ===== */
+        .exile-tag {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            line-height: 1;
+            padding: 3px 6px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            z-index: 3;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+        }
         .reserve-icon-sm {
             width: 14px;
             height: 14px;
@@ -750,6 +769,13 @@
             height: 12px;
             flex-shrink: 0;
         }
+        .related-card-item .exile-tag {
+            font-size: 0.48rem;
+            padding: 2px 4px;
+            border-radius: 6px;
+            top: 3px;
+            right: 3px;
+        }
 
         @media (max-width: 780px) {
             .modal {
@@ -845,7 +871,7 @@
                     <a class="menu-link active" href="#" data-target="index">卡牌收藏</a>
                     <a class="menu-link" href="builder.html" data-target="builder">卡组构筑</a>
                     <a class="menu-link" href="seek.html" data-target="seek">英文直检</a>
-                    <a class="menu-link" href="duel.html" data-target="duel">击剑大厅</a>
+                    <a class="menu-link" href="kapi.html" data-target="kapi">KAPI</a>
                     <a class="menu-link" href="pack.html" data-target="pack">模拟开包</a>
                     <a class="menu-link" href="about.html" data-target="about">关于军械库</a>
                 </div>
@@ -1177,6 +1203,9 @@
             "pt-BR", "pl-PL"
         ];
 
+        // 常备卡池卡名颜色
+        const PERMANENT_POOL_NAME_COLOR = "#a8e6a0";
+
         // ==================== 全局状态 ====================
         let allCards = [];
         let filteredCards = [];
@@ -1209,6 +1238,7 @@
 
         let whiteboardMode = false;
         let attrInvert = false;
+        let exileOnly = false;   // 词条面板中的“流亡”筛选
         let strictSearch = false;
 
         // ==================== 工具函数 ====================
@@ -1252,6 +1282,19 @@
             const b = parseInt(c.substr(4, 2), 16);
             const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
             return lum > 0.62 ? '#161a0c' : '#ffffff';
+        }
+
+        // 将十六进制颜色提亮（用于深色背景上的流亡阵营文字）
+        function lightenColor(hex, amt) {
+            amt = (amt === undefined) ? 0.5 : amt;
+            if (!hex) return '#ffffff';
+            const c = hex.replace('#', '');
+            if (c.length !== 6) return hex;
+            const r = parseInt(c.substr(0, 2), 16);
+            const g = parseInt(c.substr(2, 2), 16);
+            const b = parseInt(c.substr(4, 2), 16);
+            const f = v => Math.round(v + (255 - v) * amt);
+            return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;
         }
 
         function chipColorStyle(color) {
@@ -1520,6 +1563,7 @@
                     const j = raw.json || {};
                     const imgFile = j.image || "";
                     const factionRaw = (j.faction || "").toLowerCase();
+                    const exileRaw = (j.exile || "").toLowerCase();
                     return {
                         id: raw.id,
                         cardId: j.id || raw.cardId || "",
@@ -1542,6 +1586,10 @@
                         isSpawn: j.set === "OnlySpawnable",
                         isVeteranSet: j.set === "Special",
                         canCreate: j.can_create || [],
+                        // 新增：流亡阵营（小写，可能为空字符串）
+                        exile: exileRaw,
+                        // 新增：常备卡池（永不轮换）
+                        permanentPool: j.permanent_pool === true,
                         rawJson: j
                     };
                 });
@@ -1626,6 +1674,8 @@
             const container = document.getElementById('attrMultiContainer');
             const attrKeys = Object.keys(attrTranslation);
             let html = `<div class="filter-chip" data-filter="whiteboard" data-val="whiteboard">无词条</div>`;
+            // 新增：流亡词条（不在 attributes 中，单独处理）
+            html += `<div class="filter-chip" data-filter="exile" data-val="exile">流亡</div>`;
             html += attrKeys.map(a =>
                 `<div class="filter-chip" data-filter="attribute" data-val="${a}">${attrTranslation[a]}</div>`
             ).join('');
@@ -1694,7 +1744,9 @@
                         if (filterType === 'attribute') {
                             whiteboardMode = false;
                             attrInvert = false;
+                            exileOnly = false;
                             document.querySelector('.filter-chip[data-filter="whiteboard"]')?.classList.remove('active');
+                            document.querySelector('.filter-chip[data-filter="exile"]')?.classList.remove('active');
                             document.querySelector('.invert-chip[data-filter-type="attribute"]')?.classList.remove('active');
                         }
                         applyFilters();
@@ -1760,6 +1812,14 @@
                         selectedFilters.attributes.clear();
                         document.querySelectorAll('.filter-chip[data-filter="attribute"]').forEach(ch => ch.classList.remove('active'));
                     }
+                    applyFilters();
+                    return;
+                }
+
+                // 新增：流亡词条
+                if (type === 'exile') {
+                    exileOnly = !exileOnly;
+                    chip.classList.toggle('active');
                     applyFilters();
                     return;
                 }
@@ -1970,6 +2030,15 @@
                 }
             }
 
+            // 新增：流亡词条筛选
+            if (exileOnly) {
+                if (attrInvert) {
+                    result = result.filter(c => !c.exile);
+                } else {
+                    result = result.filter(c => !!c.exile);
+                }
+            }
+
             if (selectedFilters.statuses.size) {
                 result = result.filter(c => {
                     for (const s of selectedFilters.statuses) {
@@ -1983,7 +2052,11 @@
             }
 
             if (selectedFilters.factions.size) {
-                result = result.filter(c => selectedFilters.factions.has(c.faction));
+                // 阵营筛选：原阵营或流亡阵营命中即算命中
+                result = result.filter(c =>
+                    selectedFilters.factions.has(c.faction) ||
+                    (c.exile && selectedFilters.factions.has(c.exile))
+                );
             }
             if (selectedFilters.types.size) {
                 result = result.filter(c => selectedFilters.types.has(c.type));
@@ -2044,6 +2117,15 @@
             return card.titleZh;
         }
 
+        // 生成网格卡牌右上角的“流亡”标签
+        function buildExileTag(card) {
+            if (!card.exile) return '';
+            const ec = factionColor[card.exile] || '#6b6e5c';
+            const tc = contrastText(ec);
+            const title = `流亡至${factionNames[card.exile] || card.exile}`;
+            return `<span class="exile-tag" style="background:${ec};color:${tc};" title="${title}">流亡</span>`;
+        }
+
         function renderCards() {
             const start = (currentPage - 1) * PAGE_SIZE;
             const pageCards = filteredCards.slice(start, start + PAGE_SIZE);
@@ -2059,9 +2141,11 @@
                 const title = getDisplayTitle(card);
                 const reserveMark = card.reserved ? '<i class="reserve-icon-sm"></i>' : '';
                 const borderColor = factionColor[card.faction] || '#6b6e5c';
+                const nameColor = card.permanentPool ? PERMANENT_POOL_NAME_COLOR : '#faf0cf';
+                const exileTag = buildExileTag(card);
                 return `<div class="card-item" data-index="${globalIdx}" style="border-color: ${borderColor};">
-                            <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${title}"></div>
-                            <div class="card-info"><div class="card-name"><span>${title}</span>${reserveMark}</div></div>
+                            <div class="card-img">${exileTag}<img loading="lazy" src="${imgUrl}" alt="${title}"></div>
+                            <div class="card-info"><div class="card-name"><span style="color:${nameColor}">${title}</span>${reserveMark}</div></div>
                         </div>`;
             }).join('');
 
@@ -2132,7 +2216,18 @@
 
             document.getElementById('modalFactionIcon').innerHTML =
                 `<img class="faction-icon-lg" src="${c.faction}.svg" onerror="this.style.display='none'">`;
-            document.getElementById('modalFaction').textContent = factionNames[c.faction] || c.faction;
+
+            // 阵营文本：若有流亡，则显示“原阵营 → 流亡阵营”
+            const factionEl = document.getElementById('modalFaction');
+            if (c.exile) {
+                const exileName = factionNames[c.exile] || c.exile;
+                const exileColor = lightenColor(factionColor[c.exile] || '#6b6e5c', 0.5);
+                factionEl.innerHTML =
+                    `${factionNames[c.faction] || c.faction} → <span style="color:${exileColor};font-weight:700;">${exileName}</span>`;
+            } else {
+                factionEl.textContent = factionNames[c.faction] || c.faction;
+            }
+
             document.getElementById('modalType').textContent = typeMap[c.type] || c.type;
 
             const rarityEl = document.getElementById('modalRarity');
@@ -2142,7 +2237,8 @@
 
             const reserveSpan = c.reserved ? '<span class="reserve-badge"></span>' : '';
             let titleText = c.titleMap ? (c.titleMap[currentModalLang] || c.titleZh) : c.titleZh;
-            document.getElementById('modalName').innerHTML = `${titleText} ${reserveSpan}`;
+            const titleColor = c.permanentPool ? ` style="color:${PERMANENT_POOL_NAME_COLOR}"` : '';
+            document.getElementById('modalName').innerHTML = `<span${titleColor}>${titleText}</span> ${reserveSpan}`;
 
             let textContent = c.textMap ? (c.textMap[currentModalLang] || c.text_zh || "无描述") : (c.text_zh || "无描述");
             document.getElementById('modalText').innerHTML = textContent;
@@ -2153,7 +2249,13 @@
             document.getElementById('modalCostDefense').innerHTML = statLine;
             document.getElementById('modalCostDefense').style.borderLeftColor = themeColor;
 
-            document.getElementById('modalAttributes').textContent = translateAttributes(c.attributes);
+            // 词条：把“流亡”附加进去
+            let attrStr = translateAttributes(c.attributes);
+            if (c.exile) {
+                attrStr = (attrStr === '无') ? '流亡' : attrStr + ', 流亡';
+            }
+            document.getElementById('modalAttributes').textContent = attrStr;
+
             document.getElementById('modalSet').textContent = setTranslation[c.setName] || c.setName;
             document.getElementById('modalCardId').textContent = c.cardId || '---';
             document.getElementById('modalImportId').textContent = c.importId || '---';
@@ -2267,9 +2369,11 @@
                         const borderColor = factionColor[c.faction] || '#6b6e5c';
                         const reserveMark = c.reserved ? '<i class="reserve-icon-sm"></i>' : '';
                         const title = (c.titleMap && c.titleMap[lang]) ? c.titleMap[lang] : c.titleZh;
+                        const nameColor = c.permanentPool ? PERMANENT_POOL_NAME_COLOR : '#faf0cf';
+                        const exileTag = buildExileTag(c);
                         html += `<div class="related-card-item" data-cardid="${c.cardId}" style="border-color: ${borderColor};">
-                                    <div class="card-img"><img loading="lazy" src="${imgUrl}" alt="${title}"></div>
-                                    <div class="card-info"><div class="card-name"><span>${title}</span>${reserveMark}</div></div>
+                                    <div class="card-img">${exileTag}<img loading="lazy" src="${imgUrl}" alt="${title}"></div>
+                                    <div class="card-info"><div class="card-name"><span style="color:${nameColor}">${title}</span>${reserveMark}</div></div>
                                 </div>`;
                     }
                     html += `</div></div>`;
