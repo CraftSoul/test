@@ -766,7 +766,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
         <div class="upload-form-row"><label>图标填充</label><select id="cfIconFit"><option value="cover">横铺满</option><option value="contain">纵铺满</option><option value="stretch">拉！伸！</option></select></div>
         <div class="upload-actions">
             <button id="cfConfirmBtn" style="background:#6a8a4a;">创建</button>
-            <button id="cfCancelBtn">取消</button>
+            <button id="cfCancelBtn" style="background:#5a4a3a">取消</button>
         </div>
     </div>
 </div>
@@ -3141,7 +3141,7 @@ function getCardWeight(item,params){
       texts.push(a);
       if(attrTranslation[a]) texts.push(attrTranslation[a]);
     }
-    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*15);
+    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*50);
   }
   // 造价加权
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
