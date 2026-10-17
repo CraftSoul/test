@@ -714,6 +714,12 @@ const PERMANENT_POOL_NAME_COLOR="#a8e6a0";
 // ==================== 自定义阵营 ====================
 let customFactions=[]; // {id,name,color,iconData,iconFit}
 
+function getFactionName(faction){
+  if(!faction) return '';
+  const cf=customFactions.find(f=>f.id===faction);
+  if(cf) return cf.name;
+  return factionNames[faction]||faction;
+}
 function getFactionColor(faction){
   if(!faction) return '#6b6e5c';
   const cf=customFactions.find(f=>f.id===faction);
