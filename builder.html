@@ -3141,6 +3141,11 @@ function getCardWeight(item,params){
       texts.push(a);
       if(attrTranslation[a]) texts.push(attrTranslation[a]);
     }
+    if(!keywordHit && card.exile){
+      const exileName = getFactionName(card.exile);
+      const exileTexts = ['流亡', 'exile', exileName];
+      keywordHit = exileTexts.some(t=>t&&t.toLowerCase().includes(kw));
+    }
     if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*50);
   }
   // 造价加权
