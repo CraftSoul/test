@@ -352,7 +352,10 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
             <button id="mobileQrExportBtn" class="gen-img-btn" style="background:#6a5a3a;">📤 导出二维码卡</button>
             <button id="mobileGenImgBtn" class="gen-img-btn">🖼️ 生成图片</button>
         </div></div>
-        <div class="stats-header"><button class="stats-btn" id="mobileStatsBtn">📊 统计</button></div>
+        <div class="stats-header">
+          <button class="stats-btn" id="mobileStatsBtn">📊 统计</button>
+          <button class="stats-btn" id="mobileRandomFillBtn">🎲 随机填充</button>
+        </div>
         <div class="mobile-deck-list" id="mobileDeckList"></div>
         <button class="clear-deck" id="mobileClearDeck" style="margin-top:12px;">清空</button>
     </div>
@@ -421,7 +424,10 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
                 <button id="qrExportBtn" class="gen-img-btn" style="background:#6a5a3a;">📤 导出二维码卡</button>
                 <button id="genImgBtn" class="gen-img-btn">🖼️ 生成图片</button>
             </div></div>
-            <div class="stats-header"><button class="stats-btn" id="statsBtn">📊 统计</button></div>
+            <div class="stats-header">
+              <button class="stats-btn" id="statsBtn">📊 统计</button>
+              <button class="stats-btn" id="randomFillBtn">🎲 随机填充</button>
+            </div>
             <div class="deck-list" id="deckListContainer"></div>
         </div>
     </div>
@@ -643,6 +649,94 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
     </div>
 </div>
 
+<!-- 随机填充模态框 -->
+<div id="randomFillModal" class="gen-modal">
+  <div class="gen-content" style="max-width:620px;">
+    <div class="gen-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:1.2rem;font-weight:bold;color:#ffefbf;">🎲 随机填充卡组</div>
+        <span id="randomFillClose" style="font-size:1.8rem;cursor:pointer;color:#e9d49c;">&times;</span>
+      </div>
+      <div class="section-label">基础</div>
+      <div class="switch-row" style="margin-bottom:12px;">
+        <div class="switch-item" style="flex:1;">
+          <div class="switch-item-top"><span>锁定主/盟国</span><label class="switch"><input type="checkbox" id="rfLockNation" checked><span class="slider"></span></label></div>
+        </div>
+        <div class="switch-item" style="flex:1;">
+          <div class="switch-item-top"><span>允许预备卡牌</span><label class="switch"><input type="checkbox" id="rfAllowReserve"><span class="slider"></span></label></div>
+        </div>
+      </div>
+
+      <div class="section-label">费用加权</div>
+      <div class="gen-controls" style="margin-bottom:8px;">
+        <div class="gen-control" style="flex:1.5;">
+          <label>模式</label>
+          <select id="rfCostMode">
+            <option value="none">无</option>
+            <option value="low">低费 [0,4]</option>
+            <option value="mid">中费 [3,7]</option>
+            <option value="high">高费 [6,24]</option>
+          </select>
+        </div>
+        <div class="gen-control" style="flex:2;">
+          <label>强度 <span id="rfCostStrengthVal">50</span></label>
+          <input type="range" id="rfCostStrength" min="0" max="100" value="50">
+        </div>
+      </div>
+
+      <div class="section-label">关键词加权</div>
+      <div class="gen-controls" style="margin-bottom:8px;">
+        <div class="gen-control" style="flex:1.5;">
+          <label>关键词</label>
+          <input type="text" id="rfKeyword" placeholder="卡名/词条/文本包含此词">
+        </div>
+        <div class="gen-control" style="flex:2;">
+          <label>强度 <span id="rfKeywordStrengthVal">50</span></label>
+          <input type="range" id="rfKeywordStrength" min="0" max="100" value="50">
+        </div>
+      </div>
+
+      <div class="section-label">造价加权</div>
+      <div class="gen-controls" style="margin-bottom:8px;">
+        <div class="gen-control" style="flex:1.5;">
+          <label>模式</label>
+          <select id="rfRarityMode">
+            <option value="none">无</option>
+            <option value="low">低造价</option>
+            <option value="high">高造价</option>
+          </select>
+        </div>
+        <div class="gen-control" style="flex:2;">
+          <label>强度 <span id="rfRarityStrengthVal">50</span></label>
+          <input type="range" id="rfRarityStrength" min="0" max="100" value="50">
+        </div>
+      </div>
+
+      <div class="section-label">数量加权</div>
+      <div class="gen-controls" style="margin-bottom:8px;">
+        <div class="gen-control" style="flex:1.5;">
+          <label>模式</label>
+          <select id="rfQuantityMode">
+            <option value="none">无</option>
+            <option value="good">好牌多抓</option>
+            <option value="lonely">宇宙冷漠</option>
+          </select>
+        </div>
+        <div class="gen-control" style="flex:2;">
+          <label>强度 <span id="rfQuantityStrengthVal">50</span></label>
+          <input type="range" id="rfQuantityStrength" min="0" max="100" value="50">
+        </div>
+      </div>
+
+      <div class="gen-actions" style="margin-top:20px;">
+        <button id="rfStartBtn" style="background:#6a8a4a;">开始填充</button>
+        <button id="rfCancelBtn" style="background:#5a4a3a;">取消</button>
+      </div>
+      <div id="rfStatus" class="gen-status" style="margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 创建自定义阵营模态框 -->
 <div id="customFactionModal" class="upload-modal" style="display:none;">
     <div class="upload-content">
@@ -669,6 +763,7 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
         <div class="upload-form-row" style="align-items:center;">
             <label>图标预览</label>
             <div class="faction-icon-preview" id="cfIconPreview"><span style="color:#7a705a;font-size:.65rem;">无</span></div>
+            <div id="cfColorPreview" style="margin-top:8px;padding:8px 12px;border-radius:10px;text-align:center;font-weight:700;font-size:.9rem;border:1px solid rgba(255,255,255,.2);"></div>
         </div>
         <div class="upload-actions">
             <button id="cfConfirmBtn" style="background:#6a8a4a;">创建</button>
@@ -1013,8 +1108,11 @@ function populateUploadFactionSelect(){
 }
 
 function refreshNationSelectors(){
-  const mainOpts=getAllFactionIds().filter(f=>f!=='neutral').map(f=>`<option value="${f}">${getFactionName(f)}</option>`).join('');
-  const allyOpts=getAllFactionIds().filter(f=>f!=='neutral').map(f=>`<option value="${f}">${getFactionName(f)}</option>`).join('');
+  const customFactionIds=customFactions.map(f=>f.id);
+  const mainOptions=[...mainNationOptions,...customFactionIds];
+  const allyOptions=getAllFactionIds().filter(f=>f!=='neutral');
+  const mainOpts=mainOptions.map(f=>`<option value="${f}">${getFactionName(f)}</option>`).join('');
+  const allyOpts=allyOptions.map(f=>`<option value="${f}">${getFactionName(f)}</option>`).join('');
   ['mainNationSelect','mobileMainNation'].forEach(id=>{
     const el=document.getElementById(id);el.innerHTML=mainOpts;
     if([...el.options].some(o=>o.value===mainNation)) el.value=mainNation;
@@ -1023,7 +1121,7 @@ function refreshNationSelectors(){
   ['allyNationSelect','mobileAllyNation'].forEach(id=>{
     const el=document.getElementById(id);el.innerHTML=allyOpts;
     if([...el.options].some(o=>o.value===allyNation)) el.value=allyNation;
-    else el.value=allNationOptions[0];
+    else el.value=allyOptions[0];
   });
   mainNation=document.getElementById('mainNationSelect').value;
   allyNation=document.getElementById('allyNationSelect').value;
@@ -1799,6 +1897,22 @@ async function generateDeckImageLocal(opts){
 }
 
 // ==================== 统计卡 / 二维码卡绘制 ====================
+function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
+  if(!img||!img.width) return;
+  const iw=img.width,ih=img.height;
+  if(fit==='stretch'){ctx.drawImage(img,dx,dy,dw,dh);return;}
+  const iA=iw/ih,dA=dw/dh;
+  let sx=0,sy=0,sw=iw,sh=ih;
+  if(fit==='cover'){
+    if(iA>dA){sh=ih;sw=ih*dA;sx=(iw-sw)/2;}
+    else{sw=iw;sh=iw/dA;sy=(ih-sh)/2;}
+  }else if(fit==='contain'){
+    if(iA<dA){sh=ih;sw=ih*dA;sx=(iw-sw)/2;}
+    else{sw=iw;sh=iw/dA;sy=(ih-sh)/2;}
+  }
+  ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
+}
+
 async function drawStatsCard(ctx,x,y,w,h,radius,customTitle){
   ctx.save();
   ctx.beginPath();ctx.moveTo(x+radius,y);ctx.lineTo(x+w-radius,y);ctx.quadraticCurveTo(x+w,y,x+w,y+radius);ctx.lineTo(x+w,y+h-radius);ctx.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);ctx.lineTo(x+radius,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-radius);ctx.lineTo(x,y+radius);ctx.quadraticCurveTo(x,y,x+radius,y);ctx.closePath();
@@ -1824,11 +1938,11 @@ async function drawStatsCard(ctx,x,y,w,h,radius,customTitle){
   const startY=y+h*0.22,lineH=h*0.075,iconSize=Math.floor(h*0.06);
   const mIcon=new Image();mIcon.crossOrigin='Anonymous';mIcon.src=getFactionIcon(mainNation);
   await new Promise(r=>{mIcon.onload=r;mIcon.onerror=r;});
-  ctx.drawImage(mIcon,x+w*0.05,startY-iconSize*0.7,iconSize,iconSize);
+  drawIconFit(ctx,mIcon,x+w*0.05,startY-iconSize*0.7,iconSize,iconSize,getFactionIconFit(mainNation));
   ctx.fillStyle=getFactionColor(mainNation);ctx.fillText(`${getFactionName(mainNation)}: ${mc}`,x+w*0.05+iconSize+5,startY+2);
   const aIcon=new Image();aIcon.crossOrigin='Anonymous';aIcon.src=getFactionIcon(allyNation);
   await new Promise(r=>{aIcon.onload=r;aIcon.onerror=r;});
-  ctx.drawImage(aIcon,x+w*0.05,startY+lineH-iconSize*0.7,iconSize,iconSize);
+  drawIconFit(ctx,aIcon,x+w*0.05,startY+lineH-iconSize*0.7,iconSize,iconSize,getFactionIconFit(allyNation));
   ctx.fillStyle=getFactionColor(allyNation);ctx.fillText(`${getFactionName(allyNation).slice(0,2)}: ${ac}`,x+w*0.05+iconSize+5,startY+lineH+2);
   let lineOff=2;
   if(oc>0){ctx.fillStyle='#a0a0a0';ctx.fillText(`其他: ${oc}`,x+w*0.05+iconSize+5,startY+lineH*2+2);lineOff=3;}
@@ -2767,15 +2881,27 @@ function setupCustomFactionEvents(){
     }
   });
 
-  function updateCfPreview(){
-    const preview=document.getElementById('cfIconPreview');
-    const fit=document.getElementById('cfIconFit').value;
-    if(!iconData){preview.innerHTML='<span style="color:#7a705a;font-size:.65rem;">无</span>';return;}
+function updateCfPreview(){
+  const preview=document.getElementById('cfIconPreview');
+  const fit=document.getElementById('cfIconFit').value;
+  if(!iconData){preview.innerHTML='<span style="color:#7a705a;font-size:.65rem;">无</span>';}
+  else{
     const fitClass=fit==='contain'?'fit-contain':fit==='stretch'?'fit-stretch':'';
     preview.innerHTML=`<img src="${iconData}" class="${fitClass}" style="object-fit:${fit==='stretch'?'fill':fit}">`;
   }
+  // 颜色预览
+  const name=document.getElementById('cfName').value.trim()||'阵营预览';
+  const color=document.getElementById('cfColor').value;
+  const colorPreview=document.getElementById('cfColorPreview');
+  if(colorPreview){
+    colorPreview.style.background=color;
+    colorPreview.style.color=contrastText(color);
+    colorPreview.textContent=name;
+  }
+}
   document.getElementById('cfIconFit')?.addEventListener('change',updateCfPreview);
-
+  document.getElementById('cfName')?.addEventListener('input',updateCfPreview);
+  document.getElementById('cfColor')?.addEventListener('input',updateCfPreview);
   cancelBtn?.addEventListener('click',()=>{modal.style.display='none';});
   modal?.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none';});
 
@@ -2900,6 +3026,257 @@ function bindDeckEvents(){
   document.getElementById('mobileMainNation').addEventListener('change',()=>{mainNation=document.getElementById('mobileMainNation').value;document.getElementById('mainNationSelect').value=mainNation;updateAllDecksUI();updateFactionStats();});
   document.getElementById('mobileAllyNation').addEventListener('change',()=>{allyNation=document.getElementById('mobileAllyNation').value;document.getElementById('allyNationSelect').value=allyNation;updateAllDecksUI();updateFactionStats();});
 }
+// ==================== 随机填充 ====================
+function getMaxQuantity(rarity){
+  switch(rarity){
+    case 'Standard':return 4;
+    case 'Limited':return 3;
+    case 'Special':return 2;
+    case 'Elite':return 1;
+    default:return 4;
+  }
+}
+function getCardEffectiveFaction(card){
+  return card.exile||card.faction;
+}
+function computeAllyCount(main,ally){
+  if(main===ally) return 0; // 主盟相同：全部记为主国
+  let cnt=0;
+  for(const {card,count} of deckMap.values()){
+    if(getCardEffectiveFaction(card)===ally) cnt+=count;
+  }
+  return cnt;
+}
+function validateDeckForFill(main,ally){
+  const total=Array.from(deckMap.values()).reduce((s,e)=>s+e.count,0);
+  if(total>39) return {valid:false,reason:'卡组总数超过39张'};
+  const sameNation=(main===ally);
+  let allyCount=0;
+  for(const {card,count} of deckMap.values()){
+    if(card.isSpawn||card.isVeteranSet) return {valid:false,reason:`包含衍生/老兵卡：${getDisplayTitle(card)}`};
+    const eff=getCardEffectiveFaction(card);
+    if(sameNation){
+      if(eff!==main) return {valid:false,reason:`卡牌 ${getDisplayTitle(card)} 阵营不属于主国`};
+    }else{
+      if(eff!==main&&eff!==ally) return {valid:false,reason:`卡牌 ${getDisplayTitle(card)} 阵营不属于主国或盟国`};
+    }
+    const maxQ=getMaxQuantity(card.rarity);
+    if(count>maxQ) return {valid:false,reason:`卡牌 ${getDisplayTitle(card)} 数量 ${count} 超过上限 ${maxQ}`};
+    if(!sameNation&&eff===ally){
+      allyCount+=count;
+      if(card.rarity==='Elite') return {valid:false,reason:`盟国卡牌 ${getDisplayTitle(card)} 不能是精英`};
+    }
+  }
+  if(!sameNation&&allyCount>12) return {valid:false,reason:`盟国卡牌总数 ${allyCount} 超过12张`};
+  return {valid:true};
+}
+function buildCandidatePool(main,ally,allowReserve){
+  const sameNation=(main===ally);
+  const pool=[];
+  for(const card of allCards){
+    if(card.isSpawn||card.isVeteranSet) continue;
+    if(!allowReserve&&card.reserved) continue;
+    const eff=getCardEffectiveFaction(card);
+    if(sameNation){
+      if(eff!==main) continue;
+    }else{
+      if(eff!==main&&eff!==ally) continue;
+      if(eff===ally&&card.rarity==='Elite') continue;
+    }
+    const entry=deckMap.get(card.id);
+    const current=entry?entry.count:0;
+    const maxQ=getMaxQuantity(card.rarity);
+    const remaining=maxQ-current;
+    if(remaining<=0) continue;
+    pool.push({card,eff,maxQ,current,remaining});
+  }
+  return pool;
+}
+function getCostLayer(cost){
+  if(cost<=1) return 0;
+  if(cost<=3) return 1;
+  if(cost<=5) return 2;
+  if(cost<=7) return 3;
+  return 4;
+}
+function getCardWeight(item,params){
+  const card=item.card;
+  let w=1;
+  // 费用加权
+  if(params.costMode!=='none'&&params.costStrength>0){
+    const cost=card.cost;
+    let inRange=false;
+    if(params.costMode==='low') inRange=cost<=4;
+    else if(params.costMode==='mid') inRange=cost>=3&&cost<=7;
+    else if(params.costMode==='high') inRange=cost>=6;
+    if(inRange) w*=(1+params.costStrength*3);
+  }
+  // 关键词加权
+  if(params.keyword&&params.keywordStrength>0){
+    const kw=params.keyword.toLowerCase();
+    const texts=[];
+    if(card.titleMap) for(const k in card.titleMap) texts.push(card.titleMap[k]);
+    if(card.titleZh) texts.push(card.titleZh);
+    if(card.textMap) for(const k in card.textMap) texts.push(card.textMap[k]);
+    if(card.text_zh) texts.push(card.text_zh);
+    if(card.attributes) for(const a of card.attributes){
+      texts.push(a);
+      if(attrTranslation[a]) texts.push(attrTranslation[a]);
+    }
+    if(texts.some(t=>t&&t.toLowerCase().includes(kw))) w*=(1+params.keywordStrength*3);
+  }
+  // 造价加权
+  if(params.rarityMode!=='none'&&params.rarityStrength>0){
+    const rarity=card.rarity||'Standard';
+    const order={Standard:0,Limited:1,Special:2,Elite:3}[rarity]??0;
+    if(params.rarityMode==='low') w*=(1+(3-order)*params.rarityStrength*0.5);
+    else if(params.rarityMode==='high') w*=(1+order*params.rarityStrength*0.5);
+  }
+  return w;
+}
+function weightedRandom(items,weights){
+  const total=weights.reduce((a,b)=>a+b,0);
+  if(total<=0) return items[Math.floor(Math.random()*items.length)];
+  let r=Math.random()*total;
+  for(let i=0;i<items.length;i++){
+    r-=weights[i];
+    if(r<=0) return items[i];
+  }
+  return items[items.length-1];
+}
+function randomFillDeck(){
+  const statusEl=document.getElementById('rfStatus');
+  const setStatus=t=>{if(statusEl){statusEl.style.display='block';statusEl.textContent=t;}};
+  try{
+    const lockNation=document.getElementById('rfLockNation').checked;
+    const allowReserve=document.getElementById('rfAllowReserve').checked;
+    const costMode=document.getElementById('rfCostMode').value;
+    const costStrength=parseInt(document.getElementById('rfCostStrength').value)/100;
+    const keyword=document.getElementById('rfKeyword').value.trim();
+    const keywordStrength=parseInt(document.getElementById('rfKeywordStrength').value)/100;
+    const rarityMode=document.getElementById('rfRarityMode').value;
+    const rarityStrength=parseInt(document.getElementById('rfRarityStrength').value)/100;
+    const quantityMode=document.getElementById('rfQuantityMode').value;
+    const quantityStrength=parseInt(document.getElementById('rfQuantityStrength').value)/100;
+
+    let main=mainNation,ally=allyNation;
+    if(!lockNation){
+      const customIds=customFactions.map(f=>f.id);
+      const mainOptions=[...mainNationOptions,...customIds];
+      const allyOptions=getAllFactionIds().filter(f=>f!=='neutral');
+      main=mainOptions[Math.floor(Math.random()*mainOptions.length)];
+      // 允许主盟相同
+      ally=allyOptions[Math.floor(Math.random()*allyOptions.length)];
+    }
+
+    const validation=validateDeckForFill(main,ally);
+    if(!validation.valid){
+      alert('当前卡组不合法，无法随机填充：\n'+validation.reason);
+      return;
+    }
+
+    const sameNation=(main===ally);
+    const params={costMode,costStrength,keyword,keywordStrength,rarityMode,rarityStrength,quantityMode,quantityStrength};
+
+    let guard=0;
+    while(Array.from(deckMap.values()).reduce((s,e)=>s+e.count,0)<39 && guard++<800){
+      const total=Array.from(deckMap.values()).reduce((s,e)=>s+e.count,0);
+      if(total>=39) break;
+      let allyCount=sameNation?0:computeAllyCount(main,ally);
+      let pool=buildCandidatePool(main,ally,allowReserve);
+      if(!sameNation&&allyCount>=12) pool=pool.filter(it=>it.eff!==ally);
+      if(pool.length===0) break;
+
+      // 按费用分层
+      const layers=[[],[],[],[],[]];
+      for(const it of pool) layers[getCostLayer(it.card.cost)].push(it);
+      const layerWeights=layers.map(layer=>{
+        let sum=0;
+        for(const it of layer) sum+=getCardWeight(it,params);
+        return sum;
+      });
+      const nonEmpty=layers.map((l,i)=>l.length>0?i:-1).filter(i=>i>=0);
+      if(nonEmpty.length===0) break;
+      let chosenLayer;
+      const totalLayerWeight=nonEmpty.reduce((s,i)=>s+layerWeights[i],0);
+      if(totalLayerWeight>0){
+        chosenLayer=weightedRandom(nonEmpty,nonEmpty.map(i=>layerWeights[i]));
+      }else{
+        chosenLayer=nonEmpty[Math.floor(Math.random()*nonEmpty.length)];
+      }
+      const layerItems=layers[chosenLayer];
+      const weights=layerItems.map(it=>getCardWeight(it,params));
+      const chosenItem=weightedRandom(layerItems,weights);
+
+      // 计算可添加数量
+      let maxAdd=Math.min(chosenItem.remaining,39-total);
+      if(!sameNation&&chosenItem.eff===ally) maxAdd=Math.min(maxAdd,12-allyCount);
+      if(maxAdd<=0) continue;
+
+      // 数量加权
+      let addCount=1;
+      if(quantityMode==='none'){
+        addCount=Math.floor(Math.random()*maxAdd)+1;
+      }else{
+        const ks=[];
+        const ws=[];
+        for(let k=1;k<=maxAdd;k++){
+          ks.push(k);
+          let w=1;
+          if(quantityMode==='good') w=1+quantityStrength*(k-1)*2;
+          else if(quantityMode==='lonely') w=1+quantityStrength*(maxAdd-k)*2;
+          ws.push(w);
+        }
+        addCount=weightedRandom(ks,ws);
+      }
+      addCount=Math.min(addCount,maxAdd);
+      if(addCount<=0) continue;
+
+      const card=chosenItem.card;
+      let entry=deckMap.get(card.id);
+      if(entry) entry.count+=addCount;
+      else deckMap.set(card.id,{card,count:addCount});
+    }
+
+    updateAllDecksUI();
+    renderCards();
+    updateFactionStats();
+    document.getElementById('randomFillModal').style.display='none';
+    alert('随机填充完成');
+  }catch(e){
+    console.error(e);
+    setStatus('❌ 填充失败: '+e.message);
+    setTimeout(()=>{if(statusEl)statusEl.style.display='none';},3000);
+  }
+}
+
+// 绑定事件
+function bindRandomFillEvents(){
+  const openModal=()=>{
+    const validation=validateDeckForFill(mainNation,allyNation);
+    if(!validation.valid){
+      alert('当前卡组不合法，无法随机填充：\n'+validation.reason);
+      return;
+    }
+    document.getElementById('randomFillModal').style.display='flex';
+  };
+  document.getElementById('randomFillBtn')?.addEventListener('click',openModal);
+  document.getElementById('mobileRandomFillBtn')?.addEventListener('click',openModal);
+  document.getElementById('randomFillClose')?.addEventListener('click',()=>{document.getElementById('randomFillModal').style.display='none';});
+  document.getElementById('rfCancelBtn')?.addEventListener('click',()=>{document.getElementById('randomFillModal').style.display='none';});
+  document.getElementById('randomFillModal')?.addEventListener('click',e=>{if(e.target===document.getElementById('randomFillModal'))document.getElementById('randomFillModal').style.display='none';});
+  document.getElementById('rfStartBtn')?.addEventListener('click',randomFillDeck);
+
+  // 强度滑条数值显示
+  const bindRange=(id,valId)=>{
+    const el=document.getElementById(id),val=document.getElementById(valId);
+    if(el&&val){el.addEventListener('input',()=>{val.textContent=el.value;});}
+  };
+  bindRange('rfCostStrength','rfCostStrengthVal');
+  bindRange('rfKeywordStrength','rfKeywordStrengthVal');
+  bindRange('rfRarityStrength','rfRarityStrengthVal');
+  bindRange('rfQuantityStrength','rfQuantityStrengthVal');
+}
 function openGenModal(){
   if(deckMap.size===0){
     const hqT=document.getElementById('headquarterToggle');
@@ -2917,6 +3294,7 @@ window.addEventListener('load',()=>{
   initNav();
   initSidebars();
   loadData();
+  bindRandomFillEvents();
 });
 </script>
 </body>
