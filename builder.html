@@ -279,6 +279,25 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
 .upload-form-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;align-items:center}
 .upload-form-row label{min-width:70px;font-size:.75rem;color:#e9dbbd;font-weight:600}
 .upload-form-row input,.upload-form-row select{flex:1;min-width:120px;background:#1e1c16;border:1px solid #aa8e4e;border-radius:40px;padding:.4rem .8rem;color:#f5efdb;font-size:.8rem;outline:none}
+.upload-form-row input[type=color]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  padding:0;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+}
+.upload-form-row input[type=color]::-webkit-color-swatch-wrapper{
+  padding:0;
+}
+.upload-form-row input[type=color]::-webkit-color-swatch{
+  border:none;
+  border-radius:0;
+}
 .upload-form-row input[type=file]{padding:.3rem .5rem;background:transparent;border:none}
 .upload-preview-area{margin:12px 0;text-align:center;background:#0a0c08;border-radius:16px;padding:8px;border:1px dashed #7d6a42;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .upload-preview-area img{max-width:100%;max-height:260px;border-radius:8px;object-fit:cover}
@@ -744,8 +763,12 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
         <div class="upload-form-row"><label>阵营名</label><input type="text" id="cfName" placeholder="统计卡将截取前两个字"></div>
         <div class="upload-form-row">
           <label>主题色</label>
-          <input type="color" id="cfColor" value="#c9a53b" style="height:28px;padding:2px;border-radius:8px;border:1px solid #aa8e4e;background:#1e1c16;">
-          <span id="cfColorLabel" style="font-size:.75rem;color:#c9b06b;padding:6px 10px;background:#1e1c16;border:1px solid #aa8e4e;border-radius:40px;">#c9a53b</span>
+          <div style="display:flex;align-items:center;gap:8px;flex:1;">
+            <div style="width:56px;height:36px;flex:0 0 auto;border-radius:10px;overflow:hidden;border:1px solid #aa8e4e;background:#1e1c16;">
+              <input type="color" id="cfColor" value="#c9a53b" style="width:100%;height:100%;border:none;padding:0;background:transparent;cursor:pointer;display:block;">
+            </div>
+            <span id="cfColorLabel" style="font-size:.75rem;color:#c9b06b;padding:6px 10px;background:#1e1c16;border:1px solid #aa8e4e;border-radius:40px;white-space:nowrap;">#c9a53b</span>
+          </div>
         </div>
         <div class="upload-form-row">
             <label>图标来源</label>
