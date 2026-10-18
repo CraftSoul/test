@@ -964,7 +964,7 @@
                 <a class="menu-link" href="index.html" data-target="index" data-i18n="nav_collection">卡牌收藏</a>
                 <a class="menu-link" href="builder.html" data-target="builder" data-i18n="nav_builder">卡组构筑</a>
                 <a class="menu-link" href="seek.html" data-target="seek" data-i18n="nav_seek">英文直检</a>
-                <a class="menu-link" href="duel.html" data-target="duel" data-i18n="nav_duel">击剑大厅</a>
+                <a class="menu-link" href="kapi.html">KAPI</a>
                 <a class="menu-link" href="pack.html" data-target="pack" data-i18n="nav_pack">模拟开包</a>
                 <a class="menu-link active" href="#" data-target="about" data-i18n="nav_about">关于军械库</a>
                 <div class="menu-lang-row">
@@ -1074,19 +1074,19 @@
             </div>
         </div>
 
-        <!-- block6 击剑大厅 -->
+        <!-- block6 KAPI -->
         <div class="content-block text-image" id="block6">
             <div class="block-image">
                 <a href="https://craftsoul.github.io/soviettap/" target="_blank" rel="noopener noreferrer">
-                    <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/ru-RU/by_the_sword.avif&q=100" alt="以剑之名" loading="lazy">
+                    <img src="https://images.weserv.nl/?url=ssl:www.kards.com/images/card/v53/ru-RU/partisans.avif&q=100" alt="游击队" loading="lazy">
                 </a>
             </div>
             <div class="block-text" data-i18n-block="block6">
-                <h2>⚔️ 击剑大厅</h2>
+                <h2>⚙️ KAPI</h2>
                 <div class="block-content">
-                    <p>·填写信息并发布击剑申请</p>
-                    <p>·设置等级和卡组Ban位</p>
-                    <p>·根据预期卡组筛选申请</p>
+                    <p>·生成与「卡组构筑」同风格卡组图片</p>
+                    <p>·直接使用官网卡图，不经过Weserv中转</p>
+                    <p>·解析卡组并返回格式化卡牌数据</p>
                 </div>
             </div>
         </div>
@@ -1239,7 +1239,6 @@
                 nav_collection: '卡牌收藏',
                 nav_builder: '卡组构筑',
                 nav_seek: '英文直检',
-                nav_duel: '击剑大厅',
                 nav_pack: '模拟开包',
                 nav_about: '关于军械库',
                 blocks: {
@@ -1264,8 +1263,8 @@
                         content: `<p>·无需维护卡牌JSON数据，根据英文名转换cardId</p><p>·探针检测自动发现同名变体、老兵形态</p><p>·查找官方未收录卡牌，如<strong>总部</strong>、旧版<strong>抵抗</strong>(于v53被移除)、<strong>天气</strong></p>`
                     },
                     block6: {
-                        title: '⚔️ 击剑大厅',
-                        content: `<p>·填写信息并发布击剑申请</p><p>·设置等级和卡组Ban位</p><p>·根据预期卡组筛选申请</p>`
+                        title: '⚙️ KAPI',
+                        content: `<p>·生成与「卡组构筑」同风格卡组图片</p><p>·直接使用官网卡图，不经过Weserv中转</p><p>·解析卡组并返回格式化卡牌数据</p>`
                     },
                     block7: {
                         title: '🎲 模拟开包',
@@ -1282,7 +1281,6 @@
                 nav_collection: 'Card Collection',
                 nav_builder: 'Deck Builder',
                 nav_seek: 'Direct Search',
-                nav_duel: 'Duel Hall',
                 nav_pack: 'Pack Simulator',
                 nav_about: 'About Karsenal',
                 blocks: {
@@ -1307,8 +1305,8 @@
                         content: `<p>· No JSON maintenance needed, convert English name to cardId</p><p>· Probe automatically discovers variants and Veteran forms</p><p>· Find unlisted cards like <strong>HQ</strong>, old <strong>Resistance</strong>(removed in v53), <strong>Weather</strong></p>`
                     },
                     block6: {
-                        title: '⚔️ Duel Hall',
-                        content: `<p>· Post duel requests with details</p><p>· Set rank and deck ban slots</p><p>· Filter applications by expected decks</p>`
+                        title: '⚙️ KAPI',
+                        content: `<p>· Generate deck images in the same style as "Deck Builder"</p><p>· Directly use the official card image without going through Weserv as a middleman</p><p>· Parse the deck and return formatted card data</p>`
                     },
                     block7: {
                         title: '🎲 Pack Simulator',
