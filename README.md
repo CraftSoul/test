@@ -22,7 +22,7 @@
 
 切换卡图和文本语言，回溯一年内的游戏版本
 
-老兵与衍生卡独立作为卡池，跟随上级扩展包
+老兵与衍生卡独立作为卡池，跟随上级扩展包<br><br>
 
 
 Fetch card images via [Weserv](https://wsrv.nl/) to avoid CORS
@@ -39,7 +39,7 @@ Veteran and Spawn cards are independent pools, tied to their parent sets
 
 生成卡组图片，可添加附件、设置版本、标记卡牌
 
-上传自定义卡牌，或使用相同 `cardId` 替换卡图
+上传自定义卡牌，或使用相同 `cardId` 替换卡图<br><br>
 
 
 Build manually or import via deck code / QR
@@ -54,7 +54,7 @@ Upload custom cards, or replace card art using same `cardId`
 
 探针检测自动发现同名变体、老兵形态
 
-查找官方未收录卡牌，如**总部**、**旧版抵抗**(于 v53 被移除)、**天气**
+查找官方未收录卡牌，如**总部**、**旧版抵抗**(于 v53 被移除)、**天气**<br><br>
 
 
 No JSON maintenance needed, convert English name to cardId
@@ -63,20 +63,20 @@ Probe automatically discovers variants and Veteran forms
 
 Find unlisted cards like **HQ**, **old Resistance**(removed in v53), **Weather**
 
-## 击剑大厅 Duel Hall
+## KAPI
 
-填写信息并发布击剑申请
+生成与「卡组构筑」同风格卡组图片
 
-设置等级和卡组 Ban 位
+直接使用官网卡图，不经过Weserv中转
 
-根据预期卡组筛选申请
+解析卡组并返回格式化卡牌数据<br><br>
 
 
-Post duel requests with details
+Generate deck images in the same style as **Deck Builder**
 
-Set rank and deck ban slots
+Directly use the official card image without going through Weserv as a middleman
 
-Filter applications by expected decks
+Parse the deck and return formatted card data
 
 ## 模拟开包 Pack Simulator
 
@@ -84,7 +84,7 @@ Filter applications by expected decks
 
 添加多个筛选器，取并集作为卡池
 
-同样支持上传自定义卡牌
+同样支持上传自定义卡牌<br><br>
 
 
 Fun feature: simulate opening packs
