@@ -766,7 +766,6 @@ input:checked+.slider:before{transform:translateX(20px);background-color:#fef0b6
           <input type="color" id="cfColor" value="#c9a53b" style="height:28px;padding:2px;border-radius:8px;border:1px solid #aa8e4e;background:#1e1c16;flex:0 0 auto;">
           <span id="cfColorLabel" style="font-size:.7rem;color:#c9b06b;">#c9a53b</span>
         </div>
-        </div>
         <div class="upload-form-row">
             <label>图标来源</label>
             <div class="src-segmented" id="cfSrcSegmented">
@@ -1922,23 +1921,27 @@ async function generateDeckImageLocal(opts){
 // ==================== 统计卡 / 二维码卡绘制 ====================
 function drawIconFit(ctx,img,dx,dy,dw,dh,fit){
   if(!img) return;
-  const iw=img.naturalWidth||img.width||0;
-  const ih=img.naturalHeight||img.height||0;
-  const isSvg=(img.src||'').toLowerCase().includes('.svg') || (img.src||'').startsWith('data:image/svg');
-  if(!iw||!ih){
-    // 宽高未知（常见于 SVG），按 contain 绘制，避免被拉伸成正方形
-    try{ctx.drawImage(img,dx,dy,dw,dh);}catch(_){}
+  let iw=img.naturalWidth||img.width||0;
+  let ih=img.naturalHeight||img.height||0;
+
+  // SVG 或宽高未知时，先栅格化到临时 canvas，避免直接绘制出现白块
+  const src=(img.src||'').toLowerCase();
+  const isSvg=src.endsWith('.svg')||src.startsWith('data:image/svg');
+  if(isSvg||!iw||!ih){
+    const tmp=document.createElement('canvas');
+    tmp.width=Math.max(1,Math.round(dw));
+    tmp.height=Math.max(1,Math.round(dh));
+    const tctx=tmp.getContext('2d');
+    try{
+      // 直接拉伸到临时 canvas，保持图标可见（SVG 通常无固定宽高）
+      tctx.drawImage(img,0,0,tmp.width,tmp.height);
+      ctx.drawImage(tmp,dx,dy,dw,dh);
+    }catch(_){
+      try{ctx.drawImage(img,dx,dy,dw,dh);}catch(__){}
+    }
     return;
   }
-  if(isSvg){
-    // SVG 统一按 contain 绘制，保持原始比例
-    const iA=iw/ih, dA=dw/dh;
-    let w,h,x,y;
-    if(iA>dA){w=dw;h=dw/iA;x=dx;y=dy+(dh-h)/2;}
-    else{h=dh;w=dh*iA;x=dx+(dw-w)/2;y=dy;}
-    try{ctx.drawImage(img,x,y,w,h);}catch(_){}
-    return;
-  }
+
   if(fit==='stretch'){ctx.drawImage(img,dx,dy,dw,dh);return;}
   const iA=iw/ih,dA=dw/dh;
   let sx=0,sy=0,sw=iw,sh=ih;
@@ -3142,6 +3145,7 @@ function getCostLayer(cost){
 function getCardWeight(item,params){
   const card=item.card;
   let w=1;
+
   // 费用加权
   if(params.costMode!=='none'&&params.costStrength>0){
     const cost=card.cost;
@@ -3151,49 +3155,35 @@ function getCardWeight(item,params){
     else if(params.costMode==='high') inRange=cost>=6;
     if(inRange) w*=(1+params.costStrength*3);
   }
+
   // 关键词加权
-if(params.keyword&&params.keywordStrength>0){
-  const kws=params.keyword.split('%').map(s=>s.trim().toLowerCase()).filter(s=>s.length>0);
-  if(kws.length){
-    const texts=[];
-    if(card.titleMap) for(const k in card.titleMap) texts.push(card.titleMap[k]);
-    if(card.titleZh) texts.push(card.titleZh);
-    if(card.textMap) for(const k in card.textMap) texts.push(card.textMap[k]);
-    if(card.text_zh) texts.push(card.text_zh);
-    if(card.attributes) for(const a of card.attributes){
-      texts.push(a);
-      if(attrTranslation[a]) texts.push(attrTranslation[a]);
-    }
-
-    let keywordHit=false;
-    for(const kw of kws){
-      if(texts.some(t=>t&&t.toLowerCase().includes(kw))){keywordHit=true;break;}
-    }
-
-    // 流亡词条不在 attributes 中，单独判断
-    if(!keywordHit && card.exile){
-      const exileName=getFactionName(card.exile);
-      const exileTexts=['流亡','exile',exileName];
-      for(const kw of kws){
-        if(exileTexts.some(t=>t&&t.toLowerCase().includes(kw))){keywordHit=true;break;}
+  if(params.keyword&&params.keywordStrength>0){
+    const kws=params.keyword.split('%').map(s=>s.trim().toLowerCase()).filter(s=>s.length>0);
+    if(kws.length){
+      const texts=[];
+      if(card.titleMap) for(const k in card.titleMap) texts.push(card.titleMap[k]);
+      if(card.titleZh) texts.push(card.titleZh);
+      if(card.textMap) for(const k in card.textMap) texts.push(card.textMap[k]);
+      if(card.text_zh) texts.push(card.text_zh);
+      if(card.attributes) for(const a of card.attributes){
+        texts.push(a);
+        if(attrTranslation[a]) texts.push(attrTranslation[a]);
       }
+      let hit=false;
+      for(const kw of kws){
+        if(texts.some(t=>t&&t.toLowerCase().includes(kw))){hit=true;break;}
+      }
+      if(!hit&&card.exile){
+        const exileName=getFactionName(card.exile);
+        const exileTexts=['流亡','exile',exileName];
+        for(const kw of kws){
+          if(exileTexts.some(t=>t&&t.toLowerCase().includes(kw))){hit=true;break;}
+        }
+      }
+      if(hit) w*=(1+params.keywordStrength*50);
     }
-
-    if(keywordHit) w*=(1+params.keywordStrength*50);
-  }
-}
-
-  let keywordHit = texts.some(t=>t&&t.toLowerCase().includes(kw));
-
-  // 流亡词条不在 attributes 中，单独判断
-  if(!keywordHit && card.exile){
-    const exileName = getFactionName(card.exile);
-    const exileTexts = ['流亡', 'exile', exileName];
-    keywordHit = exileTexts.some(t=>t&&t.toLowerCase().includes(kw));
   }
 
-  if(keywordHit) w*=(1+params.keywordStrength*50);
-}
   // 造价加权
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
     const rarity=card.rarity||'Standard';
@@ -3201,6 +3191,7 @@ if(params.keyword&&params.keywordStrength>0){
     if(params.rarityMode==='low') w*=(1+(3-order)*params.rarityStrength*0.5);
     else if(params.rarityMode==='high') w*=(1+order*params.rarityStrength*0.5);
   }
+
   return w;
 }
 function weightedRandom(items,weights){
@@ -3234,10 +3225,9 @@ function randomFillDeck(){
       const mainOptions=[...mainNationOptions,...customIds];
       const allyOptions=getAllFactionIds().filter(f=>f!=='neutral');
       main=mainOptions[Math.floor(Math.random()*mainOptions.length)];
-      // 允许主盟相同
       ally=allyOptions[Math.floor(Math.random()*allyOptions.length)];
 
-      // 同步到界面与全局
+      // 同步到全局与界面
       mainNation=main;
       allyNation=ally;
       const mainSel=document.getElementById('mainNationSelect');
@@ -3269,7 +3259,6 @@ function randomFillDeck(){
       if(!sameNation&&allyCount>=12) pool=pool.filter(it=>it.eff!==ally);
       if(pool.length===0) break;
 
-      // 按费用分层
       const layers=[[],[],[],[],[]];
       for(const it of pool) layers[getCostLayer(it.card.cost)].push(it);
       const layerWeights=layers.map(layer=>{
@@ -3290,12 +3279,10 @@ function randomFillDeck(){
       const weights=layerItems.map(it=>getCardWeight(it,params));
       const chosenItem=weightedRandom(layerItems,weights);
 
-      // 计算可添加数量
       let maxAdd=Math.min(chosenItem.remaining,39-total);
       if(!sameNation&&chosenItem.eff===ally) maxAdd=Math.min(maxAdd,12-allyCount);
       if(maxAdd<=0) continue;
 
-      // 数量加权
       let addCount=1;
       if(quantityMode==='none'){
         addCount=Math.floor(Math.random()*maxAdd)+1;
