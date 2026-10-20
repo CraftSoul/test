@@ -247,6 +247,7 @@
             transition: 0.1s;
         }
         .action-btn:hover { background: #c9a63b; color: #1e1c0b; border-color: #eecb77; }
+        .action-btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
         .footer-simple {
             margin-top: 2.5rem;
             padding-top: 1rem;
@@ -359,6 +360,8 @@
     <div class="action-bar">
         <button id="saveBtn" class="action-btn">💾 保存图片</button>
         <button id="copyUrlBtn" class="action-btn">🔗 复制链接</button>
+        <!-- 全部下载（ZIP）按钮 -->
+        <button id="downloadAllBtn" class="action-btn">📦 全部下载 (ZIP)</button>
     </div>
 
     <div class="footer-simple">
@@ -367,12 +370,15 @@
     </div>
 </div>
 
+<!-- 引入 JSZip 库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
     (function() {
-        const LATEST_VERSION_NUM = 53;
+        const LATEST_VERSION_NUM = 54;
         function generateVersionList() {
             let versions = [];
-            for (let i = 0; i <= 12; i++) {
+            for (let i = 0; i <= 9 + LATEST_VERSION_NUM % 10; i++) {
                 versions.push(`v${LATEST_VERSION_NUM-i}`);
             }
             return versions;
@@ -407,6 +413,7 @@
         const variantListDiv = document.getElementById('variantList');
         const variantCountBadge = document.getElementById('variantCountBadge');
         const variantToggle = document.getElementById('variantToggle');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
 
         languages.forEach(lang => {
             const option = document.createElement('option');
@@ -450,6 +457,7 @@
         let currentHighResUrl = '';
         let isDiscovering = false;
 
+        // ---------- 图片 URL 构造 ----------
         function buildImageUrl(formattedName, lang, version, quality = 100) {
             if (!formattedName) return '';
             const ver = version || DEFAULT_VERSION;
@@ -515,38 +523,39 @@
             return { variants };
         }
 
+        // ---------- 加载单张变体到预览图 ----------
         function loadCardVariant(item, lang, version) {
-    return new Promise((resolve) => {
-        const highResUrl = buildHighResUrl(item.formattedName, lang, version);
-        currentHighResUrl = highResUrl;
-        setLoading(true);
-        const langDisplay = getLangName(lang);
-        imageStatus.innerHTML = `⏳ 加载: ${item.formattedName}.avif (${langDisplay} | ${version})`;
+            return new Promise((resolve) => {
+                const highResUrl = buildHighResUrl(item.formattedName, lang, version);
+                currentHighResUrl = highResUrl;
+                setLoading(true);
+                const langDisplay = getLangName(lang);
+                imageStatus.innerHTML = `⏳ 加载: ${item.formattedName}.avif (${langDisplay} | ${version})`;
 
-        cardImage.crossOrigin = "anonymous";
-        cardImage.src = highResUrl;
+                cardImage.crossOrigin = "anonymous";
+                cardImage.src = highResUrl;
 
-        cardImage.onload = () => {
-            setLoading(false);
-            let extra = '';
-            if (item.isVeteran) extra = ' ⭐ 老兵';
-            else if (item.suffixKey && item.suffixKey !== '' && !item.isVeteran) extra = ` 🔹 ${item.displayName}`;
-            imageStatus.innerHTML = `✅ ${item.formattedName}.avif${extra} (${langDisplay} | ${version})`;
-            cardImage.setAttribute('data-current-name', item.formattedName);
-            cardImage.setAttribute('data-lang', lang);
-            cardImage.setAttribute('data-version', version);
-            resolve(true);
-        };
+                cardImage.onload = () => {
+                    setLoading(false);
+                    let extra = '';
+                    if (item.isVeteran) extra = ' ⭐ 老兵';
+                    else if (item.suffixKey && item.suffixKey !== '' && !item.isVeteran) extra = ` 🔹 ${item.displayName}`;
+                    imageStatus.innerHTML = `✅ ${item.formattedName}.avif${extra} (${langDisplay} | ${version})`;
+                    cardImage.setAttribute('data-current-name', item.formattedName);
+                    cardImage.setAttribute('data-lang', lang);
+                    cardImage.setAttribute('data-version', version);
+                    resolve(true);
+                };
 
-        cardImage.onerror = () => {
-            setLoading(false);
-            imageStatus.innerHTML = `❌ 加载失败: ${item.formattedName}.avif (版本 ${version})`;
-            cardImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%233a2f1a'/%3E%3Ctext x='50%25' y='50%25' font-size='13' fill='%23dba551' text-anchor='middle' dy='.3em'%3E💀 图片不可用 💀%3C/text%3E%3C/svg%3E";
-            currentHighResUrl = '';
-            resolve(false);
-        };
-    });
-}
+                cardImage.onerror = () => {
+                    setLoading(false);
+                    imageStatus.innerHTML = `❌ 加载失败: ${item.formattedName}.avif (版本 ${version})`;
+                    cardImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%233a2f1a'/%3E%3Ctext x='50%25' y='50%25' font-size='13' fill='%23dba551' text-anchor='middle' dy='.3em'%3E💀 图片不可用 💀%3C/text%3E%3C/svg%3E";
+                    currentHighResUrl = '';
+                    resolve(false);
+                };
+            });
+        }
 
         function renderVariantPanel(variants, activeKey, onSelect) {
             if (!variants || variants.length <= 1) {
@@ -573,6 +582,7 @@
             });
         }
 
+        // ---------- 搜索 ----------
         async function performSearch(keepSelection = false, targetSuffix = null) {
             if (isDiscovering) return;
             const rawName = cardNameInput.value.trim();
@@ -640,124 +650,131 @@
             return found ? found.label : code;
         }
 
-        // ==================== 裁剪 ====================
-        function isDarkPixel(data, x, y, width, threshold) {
-            const idx = (y * width + x) * 4;
-            const r = data[idx];
-            const g = data[idx + 1];
-            const b = data[idx + 2];
-            return Math.max(r, g, b) <= threshold;
-        }
+        // ==================== 裁剪（返回 Blob） ====================
+        function cropImage(imgElement) {
+            return new Promise((resolve, reject) => {
+                const w = imgElement.naturalWidth;
+                const h = imgElement.naturalHeight;
+                if (!w || !h) {
+                    reject(new Error('图片尺寸无效'));
+                    return;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(imgElement, 0, 0);
 
-        // ==================== 保存图片 ====================
-        async function saveCroppedImage(retry = 0) {
-    const img = cardImage;
-    if (!img.src || img.src.includes("data:image/svg+xml") && 
-        (img.src.includes("等待") || img.src.includes("不存在") || img.src.includes("不可用"))) {
-        imageStatus.innerHTML = "⚠️ 无有效卡图";
-        return;
-    }
-    if (!img.complete || img.naturalWidth === 0) {
-        imageStatus.innerHTML = "⏳ 图片未完全加载，请稍后重试";
-        return;
-    }
-    await img.decode();
+                const imageData = ctx.getImageData(0, 0, w, h);
+                const data = imageData.data;
+                const totalPixels = w * h;
 
-    saveBtn.disabled = true;
-    const originalText = saveBtn.innerText;
-    saveBtn.innerText = "💾 处理中...";
+                const visited = new Uint8Array(totalPixels);
+                const queue = [];
+                const threshold = 50;
+                const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
+                const isDark = (x, y) => {
+                    const idx = (y * w + x) * 4;
+                    return Math.max(data[idx], data[idx+1], data[idx+2]) <= threshold;
+                };
 
-    try {
-        const w = img.naturalWidth;
-        const h = img.naturalHeight;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, w, h);
-        const data = imageData.data;
-        const totalPixels = w * h;
-
-        // BFS 暗色像素处理（不变）
-        const visited = new Uint8Array(totalPixels);
-        const queue = [];
-        const threshold = 50;
-        const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
-        const isDark = (x, y) => {
-            const idx = (y * w + x) * 4;
-            return Math.max(data[idx], data[idx+1], data[idx+2]) <= threshold;
-        };
-
-        for (const [cx, cy] of corners) {
-            const idx = cy * w + cx;
-            if (!visited[idx] && isDark(cx, cy)) {
-                visited[idx] = 1;
-                queue.push([cx, cy]);
-            }
-        }
-
-        const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
-        let transparentCount = 0;
-        while (queue.length > 0) {
-            const [x, y] = queue.shift();
-            const idx = (y * w + x) * 4;
-            data[idx + 3] = 0;
-            transparentCount++;
-            for (const [dx, dy] of dirs) {
-                const nx = x + dx, ny = y + dy;
-                if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                    const nidx = ny * w + nx;
-                    if (!visited[nidx] && isDark(nx, ny)) {
-                        visited[nidx] = 1;
-                        queue.push([nx, ny]);
+                for (const [cx, cy] of corners) {
+                    const idx = cy * w + cx;
+                    if (!visited[idx] && isDark(cx, cy)) {
+                        visited[idx] = 1;
+                        queue.push([cx, cy]);
                     }
                 }
+
+                const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+                let transparentCount = 0;
+                while (queue.length > 0) {
+                    const [x, y] = queue.shift();
+                    const idx = (y * w + x) * 4;
+                    data[idx + 3] = 0;
+                    transparentCount++;
+                    for (const [dx, dy] of dirs) {
+                        const nx = x + dx, ny = y + dy;
+                        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                            const nidx = ny * w + nx;
+                            if (!visited[nidx] && isDark(nx, ny)) {
+                                visited[nidx] = 1;
+                                queue.push([nx, ny]);
+                            }
+                        }
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve({ blob, transparentCount });
+                    } else {
+                        reject(new Error('Canvas toBlob 失败'));
+                    }
+                }, 'image/png');
+            });
+        }
+
+        // ==================== 保存单张图片 ====================
+        async function saveCroppedImage(retry = 0) {
+            const img = cardImage;
+            if (!img.src || img.src.includes("data:image/svg+xml") && 
+                (img.src.includes("等待") || img.src.includes("不存在") || img.src.includes("不可用"))) {
+                imageStatus.innerHTML = "⚠️ 无有效卡图";
+                return;
+            }
+            if (!img.complete || img.naturalWidth === 0) {
+                imageStatus.innerHTML = "⏳ 图片未完全加载，请稍后重试";
+                return;
+            }
+            await img.decode();
+
+            saveBtn.disabled = true;
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = "💾 处理中...";
+
+            try {
+                let result;
+                try {
+                    result = await cropImage(img);
+                } catch (cropErr) {
+                    if (retry < 2) {
+                        await new Promise(r => setTimeout(r, 100));
+                        saveBtn.disabled = false;
+                        saveBtn.innerText = originalText;
+                        return saveCroppedImage(retry + 1);
+                    } else {
+                        throw cropErr;
+                    }
+                }
+                const { blob, transparentCount } = result;
+                const namePart = img.getAttribute('data-current-name') || 'kards_card';
+                const langAttr = img.getAttribute('data-lang') || langSelect.value;
+                const versionAttr = img.getAttribute('data-version') || currentVersion;
+                const shortLang = langAttr.replace('-', '_').slice(0,2).toUpperCase();
+                const fileName = `${namePart}_${shortLang}_${versionAttr}.png`;
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                imageStatus.innerHTML = `📦 保存成功: ${fileName} (透明 ${transparentCount} 像素)`;
+            } catch (e) {
+                imageStatus.innerHTML = `❌ 保存失败: ${e.message}`;
+                console.error(e);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = originalText;
             }
         }
 
-        if (transparentCount > 300 && retry < 2) {
-            await new Promise(r => setTimeout(r, 100));
-            saveBtn.disabled = false;
-            saveBtn.innerText = originalText;
-            imageStatus.innerHTML = `🔄 透明像素异常 (${transparentCount})，正在重试...`;
-            return saveCroppedImage(retry + 1);
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-        const pngBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-
-        const namePart = img.getAttribute('data-current-name') || 'kards_card';
-        const langAttr = img.getAttribute('data-lang') || langSelect.value;
-        const versionAttr = img.getAttribute('data-version') || currentVersion;
-        const shortLang = langAttr.replace('-', '_').slice(0,2).toUpperCase();
-        const fileName = `${namePart}_${shortLang}_${versionAttr}.png`;
-
-        const url = URL.createObjectURL(pngBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        imageStatus.innerHTML = `📦 保存成功: ${fileName} (透明 ${transparentCount} 像素)`;
-    } catch (e) {
-        imageStatus.innerHTML = `❌ 保存失败: ${e.message}`;
-        console.error(e);
-        if (retry < 2) {
-            await new Promise(r => setTimeout(r, 100));
-            return saveCroppedImage(retry + 1);
-        }
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = originalText;
-    }
-}
-
+        // ==================== 复制链接 ====================
         async function copyHighUrl() {
             if (!currentHighResUrl) {
                 imageStatus.innerHTML = "⚠️ 没有可复制的图片链接，请先检索有效卡牌";
@@ -785,9 +802,124 @@
             }
         }
 
+        // ==================== 打包下载所有变体为 ZIP ====================
+        async function downloadAllVariantsAsZip() {
+            if (!currentVariants || currentVariants.length === 0) {
+                imageStatus.innerHTML = "⚠️ 请先检索卡牌，没有可下载的变体";
+                return;
+            }
+            if (!currentBaseClean || !currentLang || !currentVersion) {
+                imageStatus.innerHTML = "⚠️ 检索信息不完整，请重新检索";
+                return;
+            }
+            if (typeof JSZip === 'undefined') {
+                imageStatus.innerHTML = "❌ ZIP 库未加载，请刷新页面重试";
+                return;
+            }
+
+            downloadAllBtn.disabled = true;
+            const originalText = downloadAllBtn.innerText;
+            downloadAllBtn.innerText = "📦 打包中...";
+
+            const zip = new JSZip();
+            const total = currentVariants.length;
+            let completed = 0;
+            let successCount = 0;
+            let failCount = 0;
+
+            // 串行处理每个变体
+            for (const item of currentVariants) {
+                try {
+                    // 1. 加载高清原图
+                    const highResUrl = buildHighResUrl(item.formattedName, currentLang, currentVersion);
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = () => reject(new Error(`图片加载失败: ${highResUrl}`));
+                        img.src = highResUrl;
+                    });
+
+                    // 2. 裁剪（带重试）
+                    let cropResult = null;
+                    let cropRetry = 0;
+                    while (cropRetry < 3) {
+                        try {
+                            cropResult = await cropImage(img);
+                            // 透明像素异常多则重试
+                            if (cropResult.transparentCount > 300 && cropRetry < 2) {
+                                cropRetry++;
+                                await new Promise(r => setTimeout(r, 120));
+                                continue;
+                            }
+                            break;
+                        } catch (cropErr) {
+                            if (cropRetry < 2) {
+                                cropRetry++;
+                                await new Promise(r => setTimeout(r, 120));
+                                continue;
+                            } else {
+                                throw cropErr;
+                            }
+                        }
+                    }
+                    if (!cropResult) throw new Error('裁剪失败');
+
+                    // 3. 加入 zip
+                    const shortLang = currentLang.replace('-', '_').slice(0,2).toUpperCase();
+                    const fileName = `${item.formattedName}_${shortLang}_${currentVersion}.png`;
+                    zip.file(fileName, cropResult.blob);
+
+                    successCount++;
+                } catch (err) {
+                    console.error(`变体 ${item.formattedName} 处理失败:`, err);
+                    failCount++;
+                } finally {
+                    completed++;
+                    imageStatus.innerHTML = `📦 打包进度: ${completed}/${total} (成功 ${successCount}，失败 ${failCount})`;
+                }
+
+                // 短暂延迟，避免过快请求
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            if (successCount === 0) {
+                imageStatus.innerHTML = `❌ 没有成功处理任何变体，无法生成 ZIP`;
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.innerText = originalText;
+                return;
+            }
+
+            // 生成 ZIP 并下载
+            try {
+                imageStatus.innerHTML = `📦 正在生成 ZIP... (${successCount} 个文件)`;
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const zipName = `${currentBaseClean}_${currentLang.replace('-', '_').slice(0,2).toUpperCase()}_${currentVersion}_variants.zip`;
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = zipName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                imageStatus.innerHTML = `✅ ZIP 下载完成: ${zipName} (成功 ${successCount}/${total}，失败 ${failCount})`;
+            } catch (zipErr) {
+                console.error('ZIP 生成失败:', zipErr);
+                imageStatus.innerHTML = `❌ ZIP 生成失败: ${zipErr.message}`;
+            } finally {
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.innerText = originalText;
+            }
+        }
+
+        // ---------- 事件绑定 ----------
         fetchBtn.onclick = (e) => { e.preventDefault(); performSearch(false, null); };
         saveBtn.onclick = (e) => { e.preventDefault(); saveCroppedImage(); };
         copyUrlBtn.onclick = (e) => { e.preventDefault(); copyHighUrl(); };
+        downloadAllBtn.onclick = (e) => { e.preventDefault(); downloadAllVariantsAsZip(); };
         cardNameInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(false, null); });
         variantToggle.addEventListener('change', () => { if(currentBaseClean) performSearch(false, null); else if(cardNameInput.value.trim()) performSearch(false, null); });
         langSelect.addEventListener('change', () => {
@@ -799,6 +931,7 @@
             else if(cardNameInput.value.trim()) performSearch(false, null);
         });
 
+        // 初始自动检索 STALINGRAD
         setTimeout(() => { if(cardNameInput.value.trim() === "STALINGRAD") performSearch(false, null); }, 120);
     })();
 </script>

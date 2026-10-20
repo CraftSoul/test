@@ -1088,11 +1088,11 @@
 
     <script>
         // ==================== 常量与翻译 ====================
-        const VERSION = 53;
+        const VERSION = 54;
 
         function generateVersionList() {
             let versions = [];
-            for (let i = 0; i <= 12; i++) {
+            for (let i = 0; i <= 9 + VERSION % 10; i++) {
                 versions.push(`v${VERSION - i}`);
             }
             return versions;
