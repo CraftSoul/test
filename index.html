@@ -1302,37 +1302,59 @@
             return ` style="--chip-color:${color}; --chip-text:${contrastText(color)};"`;
         }
 
-        function getEffectiveSet(card, visited) {
-            visited = visited || new Set();
-            if (visited.has(card.cardId)) return card.setName;
-            visited.add(card.cardId);
+        // ==================== 扩展包有效归属（衍生/老兵跟随上级） ====================
+let effectiveSetsCache = new Map();
 
-            if (card.setName === "OnlySpawnable") {
-                const parents = parentOfMap[card.cardId] || [];
-                for (let pid of parents) {
-                    const p = cardIndex[pid];
-                    if (p) {
-                        const es = getEffectiveSet(p, visited);
-                        if (es && es !== "OnlySpawnable" && es !== "Special") return es;
-                    }
-                }
-                return "OnlySpawnable";
+function getEffectiveSets(card) {
+    if (!card) return new Set();
+    if (effectiveSetsCache.has(card.cardId)) {
+        return effectiveSetsCache.get(card.cardId);
+    }
+    const result = computeEffectiveSets(card, new Set());
+    effectiveSetsCache.set(card.cardId, result);
+    return result;
+}
+
+function computeEffectiveSets(card, visited) {
+    // 环检测：本路径无法确定扩展包，返回空集（由调用方决定回退）
+    if (visited.has(card.cardId)) return new Set();
+    visited.add(card.cardId);
+
+    if (card.setName === "OnlySpawnable") {
+        const parents = parentOfMap[card.cardId] || [];
+        const result = new Set();
+        for (let pid of parents) {
+            const p = cardIndex[pid];
+            if (!p) continue;
+            // 每个父卡分支独立 visited 副本，避免互相污染
+            const es = computeEffectiveSets(p, new Set(visited));
+            for (const s of es) {
+                if (s !== "OnlySpawnable" && s !== "Special") result.add(s);
             }
-
-            if (card.setName === "Special") {
-                const originalId = becomesVeteranMap[card.cardId];
-                if (originalId) {
-                    const original = cardIndex[originalId];
-                    if (original) {
-                        const es = getEffectiveSet(original, visited);
-                        if (es && es !== "Special") return es;
-                    }
-                }
-                return "Special";
-            }
-
-            return card.setName;
         }
+        if (result.size === 0) result.add("OnlySpawnable");
+        return result;
+    }
+
+    if (card.setName === "Special") {
+        // 老兵的原版不可能是老兵，但保留递归以防数据异常/未来扩展
+        const originalId = becomesVeteranMap[card.cardId];
+        if (originalId) {
+            const original = cardIndex[originalId];
+            if (original) {
+                const es = computeEffectiveSets(original, new Set(visited));
+                const filtered = new Set();
+                for (const s of es) {
+                    if (s !== "OnlySpawnable" && s !== "Special") filtered.add(s);
+                }
+                if (filtered.size > 0) return filtered;
+            }
+        }
+        return new Set(["Special"]);
+    }
+
+    return new Set([card.setName]);
+}
 
         // ==================== 数值表达式解析 ====================
         function parseStatExpr(raw) {
@@ -1629,6 +1651,7 @@
 
                 initAllFilters();
                 bindFilterEvents();
+                effectiveSetsCache = new Map();
                 applyFilters();
 
             } catch (e) {
@@ -2072,11 +2095,14 @@
                 result = result.filter(c => selectedFilters.rarities.has(c.rarity));
             }
             if (selectedFilters.sets.size) {
-                result = result.filter(c => {
-                    const effSet = getEffectiveSet(c);
-                    return selectedFilters.sets.has(effSet);
-                });
-            }
+    result = result.filter(c => {
+        const effSets = getEffectiveSets(c);
+        for (const s of effSets) {
+            if (selectedFilters.sets.has(s)) return true;
+        }
+        return false;
+    });
+}
 
             const selTypes = [...selectedFilters.types];
             const onlyUnits = selTypes.length > 0 && selTypes.every(t => unitTypes.includes(t));
