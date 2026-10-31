@@ -901,21 +901,57 @@ function contrastText(hex){if(!hex)return "#1e1c10";const c=hex.replace('#','');
 function chipColorStyle(color){if(!color)return '';return ` style="--chip-color:${color};--chip-text:${contrastText(color)};"`;}
 function lightenColor(hex,amt){amt=amt===undefined?0.5:amt;if(!hex)return '#ffffff';const c=hex.replace('#','');if(c.length!==6)return hex;const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);const f=v=>Math.round(v+(255-v)*amt);return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;}
 
-function getEffectiveSet(card,visited){
-  visited=visited||new Set();
-  if(visited.has(card.cardId)) return card.setName;
-  visited.add(card.cardId);
-  if(card.setName==="OnlySpawnable"){
-    const parents=parentOfMap[card.cardId]||[];
-    for(const pid of parents){const p=cardIndex[pid];if(p){const es=getEffectiveSet(p,visited);if(es&&es!=="OnlySpawnable"&&es!=="Special")return es;}}
-    return "OnlySpawnable";
-  }
-  if(card.setName==="Special"){
-    const oid=becomesVeteranMap[card.cardId];
-    if(oid){const o=cardIndex[oid];if(o){const es=getEffectiveSet(o,visited);if(es&&es!=="Special")return es;}}
-    return "Special";
-  }
-  return card.setName;
+let effectiveSetsCache = new Map();
+
+function getEffectiveSets(card) {
+    if (!card) return new Set();
+    if (effectiveSetsCache.has(card.cardId)) {
+        return effectiveSetsCache.get(card.cardId);
+    }
+    const result = computeEffectiveSets(card, new Set());
+    effectiveSetsCache.set(card.cardId, result);
+    return result;
+}
+
+function computeEffectiveSets(card, visited) {
+    // 环检测：本路径无法确定扩展包，返回空集（由调用方决定回退）
+    if (visited.has(card.cardId)) return new Set();
+    visited.add(card.cardId);
+
+    if (card.setName === "OnlySpawnable") {
+        const parents = parentOfMap[card.cardId] || [];
+        const result = new Set();
+        for (let pid of parents) {
+            const p = cardIndex[pid];
+            if (!p) continue;
+            // 每个父卡分支独立 visited 副本，避免互相污染
+            const es = computeEffectiveSets(p, new Set(visited));
+            for (const s of es) {
+                if (s !== "OnlySpawnable" && s !== "Special") result.add(s);
+            }
+        }
+        if (result.size === 0) result.add("OnlySpawnable");
+        return result;
+    }
+
+    if (card.setName === "Special") {
+        // 老兵的原版不可能是老兵，但保留递归以防数据异常/未来扩展
+        const originalId = becomesVeteranMap[card.cardId];
+        if (originalId) {
+            const original = cardIndex[originalId];
+            if (original) {
+                const es = computeEffectiveSets(original, new Set(visited));
+                const filtered = new Set();
+                for (const s of es) {
+                    if (s !== "OnlySpawnable" && s !== "Special") filtered.add(s);
+                }
+                if (filtered.size > 0) return filtered;
+            }
+        }
+        return new Set(["Special"]);
+    }
+
+    return new Set([card.setName]);
 }
 
 // ==================== 数值表达式 ====================
@@ -1067,6 +1103,7 @@ async function loadData(){
       }
     }
     initAllFilters();bindFilterEvents();bindDeckEvents();bindGenModalEvents();bindUploadEvents();bindPdfEvents();setupDragUpload();setupCustomFactionEvents();
+    effectiveSetsCache = new Map();
     applyFilters();updateFactionStats();
     renderDeckList('deckListContainer');renderDeckList('mobileDeckList');
     document.getElementById('uploadBar').style.display='block';
@@ -1294,8 +1331,15 @@ function filterCardsLogic(){
   if(selectedFilters.types.size) res=res.filter(c=>selectedFilters.types.has(c.type));
   if(selectedFilters.costs.size) res=res.filter(c=>{for(const cv of selectedFilters.costs){if(cv==='7+'&&c.cost>=7)return true;if(cv!=='7+'&&c.cost===parseInt(cv))return true;}return false;});
   if(selectedFilters.rarities.size) res=res.filter(c=>selectedFilters.rarities.has(c.rarity));
-  if(selectedFilters.sets.size) res=res.filter(c=>{const eff=getEffectiveSet(c);return selectedFilters.sets.has(eff);});
-
+  if (selectedFilters.sets.size) {
+    res = res.filter(c => {
+        const effSets = getEffectiveSets(c);
+        for (const s of effSets) {
+            if (selectedFilters.sets.has(s)) return true;
+        }
+        return false;
+    });
+}
   const selTypes=[...selectedFilters.types];
   const onlyUnits=selTypes.length>0&&selTypes.every(t=>unitTypes.includes(t));
   const statsArea=document.getElementById('statsArea');
@@ -3153,7 +3197,7 @@ function getCardWeight(item,params){
     if(params.costMode==='low') inRange=cost<=4;
     else if(params.costMode==='mid') inRange=cost>=3&&cost<=7;
     else if(params.costMode==='high') inRange=cost>=6;
-    if(inRange) w*=(1+params.costStrength*3);
+    if(inRange) w*=(1+params.costStrength*30);
   }
 
   // 关键词加权
@@ -3188,8 +3232,8 @@ function getCardWeight(item,params){
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
     const rarity=card.rarity||'Standard';
     const order={Standard:0,Limited:1,Special:2,Elite:3}[rarity]??0;
-    if(params.rarityMode==='low') w*=(1+(3-order)*params.rarityStrength*0.5);
-    else if(params.rarityMode==='high') w*=(1+order*params.rarityStrength*0.5);
+    if(params.rarityMode==='low') w*=(1+(3-order)*params.rarityStrength*30);
+    else if(params.rarityMode==='high') w*=(1+order*params.rarityStrength*30);
   }
 
   return w;

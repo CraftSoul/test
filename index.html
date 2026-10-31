@@ -1302,8 +1302,7 @@
             return ` style="--chip-color:${color}; --chip-text:${contrastText(color)};"`;
         }
 
-        // ==================== 扩展包有效归属（衍生/老兵跟随上级） ====================
-let effectiveSetsCache = new Map();
+        let effectiveSetsCache = new Map();
 
 function getEffectiveSets(card) {
     if (!card) return new Set();
