@@ -3112,6 +3112,46 @@ function bindDeckEvents(){
   document.getElementById('mobileMainNation').addEventListener('change',()=>{mainNation=document.getElementById('mobileMainNation').value;document.getElementById('mainNationSelect').value=mainNation;updateAllDecksUI();updateFactionStats();});
   document.getElementById('mobileAllyNation').addEventListener('change',()=>{allyNation=document.getElementById('mobileAllyNation').value;document.getElementById('allyNationSelect').value=allyNation;updateAllDecksUI();updateFactionStats();});
 }
+function applySetAllVersions(){
+  const sel = document.getElementById('setAllVersionSelect');
+  const targetVersion = sel ? sel.value : '';
+  if(!targetVersion) return;
+
+  let changed = 0;
+  for(const { card } of deckMap.values()){
+    if(card.isCustom) continue;
+    if(!card.cardId) continue;
+    cardVersionMap.set(card.cardId, targetVersion);
+    changed++;
+  }
+
+  // 同步版本列表 UI
+  document.querySelectorAll('#versionListContent .version-row').forEach(row => {
+    const cid = row.dataset.cardId;
+    if(!cid) return;
+    const s = row.querySelector('select');
+    if(s && cardVersionMap.has(cid)){
+      s.value = cardVersionMap.get(cid);
+    }
+  });
+
+  // 刷新卡组和卡牌展示
+  updateAllDecksUI();
+  renderCards();
+
+  const status = document.getElementById('genStatus');
+  if(status){
+    status.style.display = 'block';
+    status.textContent = `已应用版本 ${targetVersion.toUpperCase()}，共 ${changed} 张卡`;
+  }
+}
+
+// 事件委托，避免重建后失效
+document.getElementById('genModal').addEventListener('click', function(e){
+  if(e.target && e.target.id === 'applySetAllBtn'){
+    applySetAllVersions();
+  }
+});
 // ==================== 随机填充 ====================
 function getMaxQuantity(rarity){
   switch(rarity){
