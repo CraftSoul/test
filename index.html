@@ -800,6 +800,53 @@
             }
         }
 
+        /* ===== 桌面端：模态框固定高度，内容内部滚动 ===== */
+@media (min-width: 781px) {
+    .modal {
+        /* 桌面端禁止整体滚动，滚动交给左右两栏 */
+        overflow: hidden;
+        align-items: center;
+    }
+
+    .modal-content {
+        height: 88vh;
+        max-height: 88vh;
+        overflow: hidden;
+    }
+
+    .modal-left {
+        height: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* 让滚动条不遮挡内容 */
+        scrollbar-width: thin;
+    }
+
+    .modal-right {
+        height: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+    }
+
+    /* 可选：美化滚动条（WebKit） */
+    .modal-left::-webkit-scrollbar,
+    .modal-right::-webkit-scrollbar {
+        width: 8px;
+    }
+    .modal-left::-webkit-scrollbar-thumb,
+    .modal-right::-webkit-scrollbar-thumb {
+        background: rgba(170, 142, 78, 0.5);
+        border-radius: 8px;
+    }
+    .modal-left::-webkit-scrollbar-track,
+    .modal-right::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}
+
         .pagination {
             display: flex;
             justify-content: center;

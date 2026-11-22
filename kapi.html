@@ -141,7 +141,8 @@ tr:nth-child(even) td{background:rgba(255,255,255,.02)}
             <pre><code class="lang-json">{
   "status": "ok",
   "timestamp": "2026-09-25T11:30:00.000Z",
-  "uptime": 12.34
+  "uptime": 12.34,
+  "version": "v54"
 }</code></pre>
             <button class="copy-btn" data-copy-target="code">复制</button>
         </div>
@@ -230,7 +231,7 @@ tr:nth-child(even) td{background:rgba(255,255,255,.02)}
         <div class="code-wrap">
             <pre><code class="lang-json">{
   "cardId": {
-    "version": "v52",
+    "version": "v51",
     "cost": 3,
     "star": true
   }
@@ -436,7 +437,7 @@ with open('deck.png', 'wb') as f:
 
 <script>
 (function(){
-  // 导航
+  // ---------- 导航 ----------
   const menuBtn=document.getElementById('menuToggleBtn');
   const menuDiv=document.getElementById('navMenu');
   menuBtn.addEventListener('click',function(e){
@@ -450,7 +451,7 @@ with open('deck.png', 'wb') as f:
     l.addEventListener('click',function(){menuDiv.classList.remove('open');});
   });
 
-  // 中英文
+  // ---------- 中英文 ----------
   const langBtns=document.querySelectorAll('.lang-btn');
   function setLang(lang){
     document.body.classList.toggle('lang-en',lang==='en');
@@ -462,57 +463,96 @@ with open('deck.png', 'wb') as f:
     b.addEventListener('click',function(){setLang(b.dataset.lang);});
   });
 
-  // 语法高亮
-  function escapeHtml(s){
+  // ---------- 安全转义 ----------
+  function esc(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
+
+  // ---------- 通用 tokenizer 高亮 ----------
+  // 规则：按顺序尝试匹配 token，匹配到就输出 span，没匹配到就输出一个字符
+  function tokenize(code, rules){
+    let out = '';
+    let i = 0;
+    const n = code.length;
+    while(i < n){
+      let matched = false;
+      for(let r = 0; r < rules.length; r++){
+        const rule = rules[r];
+        rule.re.lastIndex = 0;
+        const m = rule.re.exec(code.slice(i));
+        if(m && m.index === 0){
+          const text = m[0];
+          const cls = typeof rule.cls === 'function' ? rule.cls(text) : rule.cls;
+          out += cls ? '<span class="'+cls+'">'+esc(text)+'</span>' : esc(text);
+          i += text.length;
+          matched = true;
+          break;
+        }
+      }
+      if(!matched){
+        out += esc(code[i]);
+        i++;
+      }
+    }
+    return out;
+  }
+
+  // ---------- JSON ----------
   function highlightJson(code){
-    let s=escapeHtml(code);
-    s=s.replace(/(&quot;|")((?:\\.|[^"\\])*)(&quot;|")(\s*:)?/g,function(m,q1,body,q2,colon){
-      const q=q1==='&quot;'?'&quot;':'"';
-      if(colon) return '<span class="tok-key">'+q+body+q+'</span>'+colon;
-      return '<span class="tok-str">'+q+body+q+'</span>';
-    });
-    s=s.replace(/\b(true|false|null)\b/g,'<span class="tok-bool">$1</span>');
-    s=s.replace(/\b(-?\d+(?:\.\d+)?)\b/g,'<span class="tok-num">$1</span>');
-    return s;
+    return tokenize(code, [
+      { re: /"(?:\\.|[^"\\])*"(?=\s*:)/, cls: 'tok-key' },   // key
+      { re: /"(?:\\.|[^"\\])*"/, cls: 'tok-str' },            // string
+      { re: /\b(?:true|false|null)\b/, cls: 'tok-bool' },
+      { re: /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/, cls: 'tok-num' },
+    ]);
   }
+
+  // ---------- JS ----------
   function highlightJs(code){
-    let s=escapeHtml(code);
-    s=s.replace(/(['"`])((?:\\.|(?!\1).)*)\1/g,'<span class="tok-str">$1$2$1</span>');
-    s=s.replace(/(\/\/[^\n]*)/g,'<span class="tok-com">$1</span>');
-    s=s.replace(/\b(import|from|const|let|var|function|return|await|async|new|if|else|for|of|in|class|extends|try|catch|finally|throw)\b/g,'<span class="tok-key">$1</span>');
-    s=s.replace(/\b(true|false|null|undefined)\b/g,'<span class="tok-bool">$1</span>');
-    s=s.replace(/\b(-?\d+(?:\.\d+)?)\b/g,'<span class="tok-num">$1</span>');
-    return s;
+    return tokenize(code, [
+      { re: /\/\/[^\n]*/, cls: 'tok-com' },
+      { re: /\/\*[\s\S]*?\*\//, cls: 'tok-com' },
+      { re: /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`/, cls: 'tok-str' },
+      { re: /\b(?:import|from|const|let|var|function|return|await|async|new|if|else|for|of|in|class|extends|try|catch|finally|throw)\b/, cls: 'tok-key' },
+      { re: /\b(?:true|false|null|undefined)\b/, cls: 'tok-bool' },
+      { re: /-?\d+(?:\.\d+)?/, cls: 'tok-num' },
+    ]);
   }
+
+  // ---------- Python ----------
   function highlightPy(code){
-    let s=escapeHtml(code);
-    s=s.replace(/(['"])((?:\\.|(?!\1).)*)\1/g,'<span class="tok-str">$1$2$1</span>');
-    s=s.replace(/(#[^\n]*)/g,'<span class="tok-com">$1</span>');
-    s=s.replace(/\b(import|from|as|def|return|if|elif|else|for|in|while|with|try|except|finally|raise|class|lambda|and|or|not|is|None|True|False)\b/g,'<span class="tok-key">$1</span>');
-    s=s.replace(/\b(-?\d+(?:\.\d+)?)\b/g,'<span class="tok-num">$1</span>');
-    return s;
+    return tokenize(code, [
+      { re: /#[^\n]*/, cls: 'tok-com' },
+      { re: /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/, cls: 'tok-str' },
+      { re: /\b(?:import|from|as|def|return|if|elif|else|for|in|while|with|try|except|finally|raise|class|lambda|and|or|not|is|None|True|False)\b/, cls: 'tok-key' },
+      { re: /-?\d+(?:\.\d+)?/, cls: 'tok-num' },
+    ]);
   }
+
+  // ---------- Bash ----------
   function highlightBash(code){
-    let s=escapeHtml(code);
-    s=s.replace(/(['"])((?:\\.|(?!\1).)*)\1/g,'<span class="tok-str">$1$2$1</span>');
-    s=s.replace(/\b(curl|fetch|npm|node|python|pip)\b/g,'<span class="tok-fn">$1</span>');
-    s=s.replace(/(^|\s)(-[A-Za-z]+)\b/g,function(m,sp,opt){return sp+'<span class="tok-num">'+opt+'</span>';});
-    return s;
+    return tokenize(code, [
+      { re: /#[^\n]*/, cls: 'tok-com' },
+      { re: /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/, cls: 'tok-str' },
+      { re: /\b(?:curl|fetch|npm|node|python|pip)\b/, cls: 'tok-fn' },
+      { re: /(?:^|\s)-[A-Za-z]+/, cls: function(t){ return null; } }, // 选项不单独包，保持原样
+    ]);
   }
+
+  // ---------- 执行高亮 ----------
   document.querySelectorAll('pre code').forEach(function(el){
-    const cls=el.className||'';
-    const raw=el.textContent;
-    let html=escapeHtml(raw);
-    if(cls.indexOf('lang-json')!==-1) html=highlightJson(raw);
-    else if(cls.indexOf('lang-js')!==-1) html=highlightJs(raw);
-    else if(cls.indexOf('lang-py')!==-1) html=highlightPy(raw);
-    else if(cls.indexOf('lang-bash')!==-1) html=highlightBash(raw);
-    el.innerHTML=html;
+    const cls = el.className || '';
+    const raw = el.textContent;
+    let html;
+    if(cls.indexOf('lang-json') !== -1) html = highlightJson(raw);
+    else if(cls.indexOf('lang-js') !== -1) html = highlightJs(raw);
+    else if(cls.indexOf('lang-py') !== -1) html = highlightPy(raw);
+    else if(cls.indexOf('lang-bash') !== -1) html = highlightBash(raw);
+    else html = esc(raw);
+    el.innerHTML = html;
   });
 
-  // 一键复制
+  // ---------- 复制 ----------
   function fallbackCopy(text){
     try{
       const ta=document.createElement('textarea');
@@ -525,7 +565,7 @@ with open('deck.png', 'wb') as f:
   }
   async function copyText(text){
     try{
-      if(navigator.clipboard&&navigator.clipboard.writeText){
+      if(navigator.clipboard && navigator.clipboard.writeText){
         await navigator.clipboard.writeText(text);
         return true;
       }
@@ -534,22 +574,20 @@ with open('deck.png', 'wb') as f:
   }
   document.querySelectorAll('.copy-btn').forEach(function(btn){
     btn.addEventListener('click',async function(){
-      const wrap=btn.closest('.code-wrap')||btn.closest('.endpoint-box');
-      let text='';
-      if(btn.dataset.copyTarget==='endpoint'){
-        const el=wrap.querySelector('pre code');
-        text=el?el.textContent.trim():'';
-      }else{
-        const code=wrap.querySelector('pre code');
-        text=code?code.textContent:'';
-      }
+      const wrap = btn.closest('.code-wrap') || btn.closest('.endpoint-box');
+      if(!wrap) return;
+      const code = wrap.querySelector('pre code');
+      if(!code) return;
+      const text = btn.dataset.copyTarget === 'endpoint'
+        ? code.textContent.trim()
+        : code.textContent;
       if(!text) return;
-      const ok=await copyText(text);
-      const original=btn.textContent;
-      btn.textContent=ok?'已复制':'复制失败';
-      btn.classList.toggle('copied',ok);
+      const ok = await copyText(text);
+      const original = btn.textContent;
+      btn.textContent = ok ? '已复制' : '复制失败';
+      btn.classList.toggle('copied', ok);
       setTimeout(function(){
-        btn.textContent=original;
+        btn.textContent = original;
         btn.classList.remove('copied');
       },1200);
     });
