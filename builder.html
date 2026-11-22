@@ -3232,8 +3232,8 @@ function getCardWeight(item,params){
   if(params.rarityMode!=='none'&&params.rarityStrength>0){
     const rarity=card.rarity||'Standard';
     const order={Standard:0,Limited:1,Special:2,Elite:3}[rarity]??0;
-    if(params.rarityMode==='low') w*=(1+(3-order)**2*params.rarityStrength*10);
-    else if(params.rarityMode==='high') w*=(1+order**2*params.rarityStrength*10);
+    if(params.rarityMode==='low') w*=(1+(3-order)**4*params.rarityStrength);
+    else if(params.rarityMode==='high') w*=(1+order**4*params.rarityStrength);
   }
 
   return w;
