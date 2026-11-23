@@ -1939,8 +1939,8 @@ function computeEffectiveSets(card, visited) {
             if (raw === '非白板' || lower === 'nwb') {
                 items.push({
                     label: '文本非空',
-                    hint: '将搜索替换为 text:_*',
-                    apply: () => { input.value = 'text:_*'; }
+                    hint: '将搜索替换为 text:_',
+                    apply: () => { input.value = 'text:_'; }
                 });
             }
 
